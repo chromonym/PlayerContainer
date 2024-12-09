@@ -1,7 +1,10 @@
 package io.github.chromonym.playercontainer.containers;
 
 import io.github.chromonym.playercontainer.PlayerContainer;
+import io.github.chromonym.playercontainer.networking.ContainerInstancesPayload;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 public class AbstractContainer {
     /*
@@ -15,19 +18,22 @@ public class AbstractContainer {
     }
 
     public void onCapture(PlayerEntity player, ContainerInstance<?> ci) {
-        PlayerContainer.LOGGER.info("Captured "+player.getNameForScoreboard()+" in container "+Integer.toString(ci.getID()));
+        PlayerContainer.LOGGER.info("Captured "+player.getNameForScoreboard()+" in container "+ci.getID().toString());
+        if (!player.getWorld().isClient()) {
+            ServerPlayNetworking.send((ServerPlayerEntity)player, new ContainerInstancesPayload(ContainerInstance.containers));
+        }
         //((ServerWorld)player.getWorld()).getEntitiesByType(TypeFilter.instanceOf(LivingEntity.class), EntityPredicates.VALID_INVENTORIES);
     }
 
     public void onRelease(PlayerEntity player, ContainerInstance<?> ci) {
-        PlayerContainer.LOGGER.info("Released "+player.getNameForScoreboard()+" in container "+Integer.toString(ci.getID()));
+        PlayerContainer.LOGGER.info("Released "+player.getNameForScoreboard()+" in container "+ci.getID().toString());
     }
 
     public void onReleaseAll(ContainerInstance<?> ci) {
-        PlayerContainer.LOGGER.info("Released all players from container "+Integer.toString(ci.getID()));
+        PlayerContainer.LOGGER.info("Released all players from container "+ci.getID().toString());
     }
 
     public void onDestroy(ContainerInstance<?> ci) {
-        PlayerContainer.LOGGER.info("Destroyed container "+Integer.toString(ci.getID()));
+        PlayerContainer.LOGGER.info("Destroyed container "+ci.getID().toString());
     }
 }
