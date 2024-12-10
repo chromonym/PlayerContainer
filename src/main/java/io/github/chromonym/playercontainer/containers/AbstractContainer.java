@@ -1,8 +1,12 @@
 package io.github.chromonym.playercontainer.containers;
 
+import com.mojang.datafixers.util.Either;
+
 import io.github.chromonym.playercontainer.PlayerContainer;
 import io.github.chromonym.playercontainer.networking.ContainerInstancesPayload;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 
@@ -15,6 +19,16 @@ public class AbstractContainer {
      */
 
     public AbstractContainer() {
+    }
+
+    public void onOwnerChange(Either<Entity,BlockEntity> newOwner, ContainerInstance<?> ci) {
+        if (ci != null) {
+            newOwner.ifLeft(entity -> {
+                PlayerContainer.LOGGER.info("Container "+ci.getID().toString()+" now owned by "+entity.getNameForScoreboard());
+            }).ifRight(blockEntity -> {
+                PlayerContainer.LOGGER.info("Container "+ci.getID().toString()+" now owned by "+blockEntity.getPos().toShortString());
+            });
+        }
     }
 
     public void onCapture(PlayerEntity player, ContainerInstance<?> ci) {

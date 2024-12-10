@@ -8,7 +8,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import io.github.chromonym.playercontainer.PlayerContainer;
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
 import io.github.chromonym.playercontainer.registries.ItemComponents;
 import net.minecraft.entity.ItemEntity;
@@ -33,8 +32,7 @@ public class ItemEntityMixin {
         if (contID != null) {
             ContainerInstance<?> container = ContainerInstance.containers.get(contID);
             if (container != null) {
-                container.getContainer().onReleaseAll(container);
-                PlayerContainer.LOGGER.info("ItemStack created at "+Double.toString(x)+", "+Double.toString(y)+", "+Double.toString(z));
+                container.setOwner((ItemEntity)(Object)this);
             }
         }
     }

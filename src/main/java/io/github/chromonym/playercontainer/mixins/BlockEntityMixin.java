@@ -5,7 +5,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import io.github.chromonym.playercontainer.PlayerContainer;
 import io.github.chromonym.playercontainer.items.SimpleContainerItem;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.inventory.Inventory;
@@ -20,7 +19,7 @@ public abstract class BlockEntityMixin {
             for(int i = 0; i < inv.size(); ++i) {
                 ItemStack stack = inv.getStack(i);
                 if (!stack.isEmpty() && stack.getItem() instanceof SimpleContainerItem<?> containerItem) {
-                    PlayerContainer.LOGGER.info("Container "+containerItem.getOrMakeContainerInstance(stack, thisBE.getWorld()).getID().toString()+" moved to block entity at + "+thisBE.getPos().toShortString());
+                    containerItem.getOrMakeContainerInstance(stack, thisBE.getWorld()).setOwner(thisBE);
                 }
             }
         }

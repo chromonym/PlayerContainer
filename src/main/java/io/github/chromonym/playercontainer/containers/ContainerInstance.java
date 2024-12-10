@@ -5,11 +5,13 @@ import java.util.UUID;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import io.github.chromonym.playercontainer.registries.Containers;
-import net.fabricmc.fabric.api.attachment.v1.AttachmentTarget;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.entity.Entity;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.registry.RegistryKey;
@@ -32,9 +34,12 @@ public class ContainerInstance<C extends AbstractContainer> {
         Uuids.PACKET_CODEC, ContainerInstance::getID,
         ContainerInstance::new);
     
+
+
     private final C container;
     private final UUID ID;
-    private AttachmentTarget holder;
+    private Entity ownerEntity;
+    private BlockEntity ownerBlockEntity;
 
     public ContainerInstance(C container) {
         this(container, UUID.randomUUID());
@@ -52,8 +57,6 @@ public class ContainerInstance<C extends AbstractContainer> {
         }
     }
 
-    
-
     public UUID getID() {
         return ID;
     }
@@ -68,6 +71,30 @@ public class ContainerInstance<C extends AbstractContainer> {
             return keyOpt.get();
         } else {
             return null;
+        }
+    }
+
+    public Either<Entity,BlockEntity> getOwner() {
+        if (ownerEntity != null) {
+            return Either.left(ownerEntity);
+        } else {
+            return Either.right(ownerBlockEntity);
+        }
+    }
+
+    public void setOwner(Entity entity) {
+        if (entity != ownerEntity) {
+            ownerBlockEntity = null;
+            ownerEntity = entity;
+            container.onOwnerChange(Either.left(entity), this);
+        }
+    }
+
+    public void setOwner(BlockEntity blockEntity) {
+        if (blockEntity != ownerBlockEntity) {
+            ownerBlockEntity = blockEntity;
+            ownerEntity = null;
+            container.onOwnerChange(Either.right(blockEntity), this);
         }
     }
 

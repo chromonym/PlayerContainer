@@ -7,6 +7,7 @@ import io.github.chromonym.playercontainer.PlayerContainer;
 import io.github.chromonym.playercontainer.containers.AbstractContainer;
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
 import io.github.chromonym.playercontainer.registries.ItemComponents;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -22,7 +23,7 @@ public class SimpleContainerItem<C extends AbstractContainer> extends Item {
     private final C container;
 
     public SimpleContainerItem(C container, Settings settings) {
-        super(settings);
+        super(settings.maxCount(1));
         this.container = container;
     }
 
@@ -55,6 +56,20 @@ public class SimpleContainerItem<C extends AbstractContainer> extends Item {
             cont.getContainer().onCapture(user, cont);
         }
         return super.use(world, user, hand);
+    }
+
+    @Override
+    public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
+        ContainerInstance<?> cont = getOrMakeContainerInstance(stack, world);
+        if (cont != null) {
+            cont.setOwner(entity);
+        }
+        super.inventoryTick(stack, world, entity, slot, selected);
+    }
+
+    @Override
+    public boolean canBeNested() {
+        return false;
     }
 
     /*@Override
