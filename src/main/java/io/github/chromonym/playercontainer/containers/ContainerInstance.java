@@ -9,6 +9,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import io.github.chromonym.playercontainer.registries.Containers;
+import net.fabricmc.fabric.api.attachment.v1.AttachmentTarget;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.registry.RegistryKey;
@@ -33,6 +34,7 @@ public class ContainerInstance<C extends AbstractContainer> {
     
     private final C container;
     private final UUID ID;
+    private AttachmentTarget holder;
 
     public ContainerInstance(C container) {
         this(container, UUID.randomUUID());
@@ -49,6 +51,8 @@ public class ContainerInstance<C extends AbstractContainer> {
             containers.put(id, this);
         }
     }
+
+    
 
     public UUID getID() {
         return ID;

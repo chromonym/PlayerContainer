@@ -1,4 +1,4 @@
-package io.github.chromonym.playercontainer.mixin;
+package io.github.chromonym.playercontainer.mixins;
 
 import net.minecraft.server.MinecraftServer;
 import org.spongepowered.asm.mixin.Mixin;

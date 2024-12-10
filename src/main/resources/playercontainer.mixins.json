@@ -1,9 +1,10 @@
 {
 	"required": true,
-	"package": "io.github.chromonym.playercontainer.mixin",
+	"package": "io.github.chromonym.playercontainer.mixins",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-		"ExampleMixin"
+		"ItemEntityMixin",
+		"BlockEntityMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
