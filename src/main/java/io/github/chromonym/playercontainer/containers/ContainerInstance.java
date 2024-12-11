@@ -1,7 +1,12 @@
 package io.github.chromonym.playercontainer.containers;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.Map.Entry;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -12,15 +17,17 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.chromonym.playercontainer.registries.Containers;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.Uuids;
+import net.minecraft.world.World;
 
 public class ContainerInstance<C extends AbstractContainer> {
 
     public static BiMap<UUID, ContainerInstance<?>> containers = HashBiMap.create();
-    public static BiMap<UUID, UUID> players = HashBiMap.create(); // PLAYERS TO CONTAINERS!!
+    public static Map<UUID, UUID> players = new HashMap<UUID, UUID>(); // PLAYERS TO CONTAINERS!!
 
     public static final Codec<ContainerInstance<?>> CODEC = RecordCodecBuilder.create(
         instance -> instance.group(
@@ -65,6 +72,26 @@ public class ContainerInstance<C extends AbstractContainer> {
         return container;
     }
 
+    public Set<PlayerEntity> getPlayers(World world) {
+        Set<PlayerEntity> containedPlayers = new HashSet<PlayerEntity>();
+        for (Entry<UUID, UUID> entry : players.entrySet()) {
+            if (entry.getValue() == this.getID()) {
+                containedPlayers.add(world.getPlayerByUuid(entry.getKey()));
+            }
+        }
+        return containedPlayers;
+    }
+
+    public int getPlayerCount() {
+        int containedPlayers = 0;
+        for (Entry<UUID, UUID> entry : players.entrySet()) {
+            if (entry.getValue() == this.getID()) {
+                containedPlayers++;
+            }
+        }
+        return containedPlayers;
+    }
+
     public RegistryKey<AbstractContainer> getContainerKey() {
         Optional<RegistryKey<AbstractContainer>> keyOpt = Containers.REGISTRY.getKey(container);
         if (keyOpt.isPresent()) {
@@ -100,8 +127,8 @@ public class ContainerInstance<C extends AbstractContainer> {
 
     // write methods in here that call the relevant AbstractContainer method
 
-    public void onDestroy() {
+    public void onDestroy(World world) {
         containers.remove(ID);
-        container.onDestroy(this);
+        container.onDestroy(world, this);
     }
 }

@@ -12,8 +12,13 @@ public class PlayerContainerClient implements ClientModInitializer {
 		ClientPlayNetworking.registerGlobalReceiver(ContainerInstancesPayload.ID, (payload, context) -> {
 			context.client().execute(() -> {
 				ContainerInstance.containers = payload.containers();
+				ContainerInstance.players = payload.players();
 				ContainerInstance.containers.forEach((uuid, container) -> {
 					PlayerContainer.LOGGER.info("Recieved "+uuid.toString()+" ("+container.getContainerKey()+")");
+				});
+				ContainerInstance.players.forEach((player, container) -> {
+					PlayerContainer.LOGGER.info("Recieved "+
+						player.toString()+" in "+container.toString());
 				});
 			});
 		});

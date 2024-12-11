@@ -5,8 +5,8 @@ import net.minecraft.entity.player.PlayerEntity;
 
 public class TestContainer extends AbstractContainer {
     @Override
-    public void onCapture(PlayerEntity player, ContainerInstance<?> ci) {
-        PlayerContainer.LOGGER.info("Captured with a TestContainer");
-        super.onCapture(player, ci);
+    public boolean onCapture(PlayerEntity player, ContainerInstance<?> ci) {
+        PlayerContainer.LOGGER.info("Attempted captured with a TestContainer");
+        return super.onCapture(player, ci);
     }
 }

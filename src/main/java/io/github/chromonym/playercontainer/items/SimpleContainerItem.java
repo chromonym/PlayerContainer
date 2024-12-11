@@ -9,11 +9,13 @@ import io.github.chromonym.playercontainer.containers.ContainerInstance;
 import io.github.chromonym.playercontainer.registries.ItemComponents;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.text.Text;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
@@ -50,10 +52,23 @@ public class SimpleContainerItem<C extends AbstractContainer> extends Item {
     }
 
     @Override
+    public ActionResult useOnEntity(ItemStack stack, PlayerEntity user, LivingEntity entity, Hand hand) {
+        ContainerInstance<?> cont = getOrMakeContainerInstance(user.getStackInHand(hand), user.getWorld());
+        if (cont != null && entity instanceof PlayerEntity player) {
+            boolean bl = cont.getContainer().onCapture(player, cont);
+            return bl ? ActionResult.SUCCESS : ActionResult.CONSUME;
+        }
+        return super.useOnEntity(stack, user, entity, hand);
+    }
+
+    @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-        ContainerInstance<?> cont = getOrMakeContainerInstance(user.getStackInHand(hand), world);
-        if (cont != null) {
-            cont.getContainer().onCapture(user, cont);
+        if (user.isSneaking()) {
+            ContainerInstance<?> cont = getOrMakeContainerInstance(user.getStackInHand(hand), user.getWorld());
+            if (cont != null) {
+                cont.getContainer().onReleaseAll(world, cont);
+                return TypedActionResult.success(user.getStackInHand(hand));
+            }
         }
         return super.use(world, user, hand);
     }
@@ -92,7 +107,7 @@ public class SimpleContainerItem<C extends AbstractContainer> extends Item {
     @Override
     public void onItemEntityDestroyed(ItemEntity entity) {
         ContainerInstance<?> cont = this.getOrMakeContainerInstance(entity.getStack(), entity.getWorld());
-        if (cont != null) {cont.onDestroy();}
+        if (cont != null) {cont.onDestroy(entity.getWorld());}
     }
     
 }

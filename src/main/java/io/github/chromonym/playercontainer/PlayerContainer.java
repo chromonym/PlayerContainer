@@ -34,7 +34,10 @@ public class PlayerContainer implements ModInitializer {
 		Containers.initialize();
 
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL)
-			.register((itemGroup) -> itemGroup.add(Items.simpleContainer));
+			.register((itemGroup) -> {
+				itemGroup.add(Items.simpleContainer);
+				itemGroup.add(Items.testContainer);
+			});
 
 		LOGGER.info("Hello Fabric world!");
 	}
