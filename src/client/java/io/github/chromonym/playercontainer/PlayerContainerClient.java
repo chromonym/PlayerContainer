@@ -18,7 +18,7 @@ public class PlayerContainerClient implements ClientModInitializer {
 				});
 				ContainerInstance.players.forEach((player, container) -> {
 					PlayerContainer.LOGGER.info("Recieved "+
-						player.toString()+" in "+container.toString());
+						player.getName()+" in "+container.toString());
 				});
 			});
 		});

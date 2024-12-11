@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -17,7 +18,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.chromonym.playercontainer.registries.Containers;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.registry.RegistryKey;
@@ -27,7 +27,7 @@ import net.minecraft.world.World;
 public class ContainerInstance<C extends AbstractContainer> {
 
     public static BiMap<UUID, ContainerInstance<?>> containers = HashBiMap.create();
-    public static Map<UUID, UUID> players = new HashMap<UUID, UUID>(); // PLAYERS TO CONTAINERS!!
+    public static Map<GameProfile, UUID> players = new HashMap<GameProfile, UUID>(); // PLAYERS TO CONTAINERS!!
 
     public static final Codec<ContainerInstance<?>> CODEC = RecordCodecBuilder.create(
         instance -> instance.group(
@@ -41,7 +41,6 @@ public class ContainerInstance<C extends AbstractContainer> {
         Uuids.PACKET_CODEC, ContainerInstance::getID,
         ContainerInstance::new);
     
-
 
     private final C container;
     private final UUID ID;
@@ -72,11 +71,11 @@ public class ContainerInstance<C extends AbstractContainer> {
         return container;
     }
 
-    public Set<PlayerEntity> getPlayers(World world) {
-        Set<PlayerEntity> containedPlayers = new HashSet<PlayerEntity>();
-        for (Entry<UUID, UUID> entry : players.entrySet()) {
+    public Set<GameProfile> getPlayers(World world) {
+        Set<GameProfile> containedPlayers = new HashSet<GameProfile>();
+        for (Entry<GameProfile, UUID> entry : players.entrySet()) {
             if (entry.getValue() == this.getID()) {
-                containedPlayers.add(world.getPlayerByUuid(entry.getKey()));
+                containedPlayers.add(entry.getKey());
             }
         }
         return containedPlayers;
@@ -84,7 +83,7 @@ public class ContainerInstance<C extends AbstractContainer> {
 
     public int getPlayerCount() {
         int containedPlayers = 0;
-        for (Entry<UUID, UUID> entry : players.entrySet()) {
+        for (Entry<GameProfile, UUID> entry : players.entrySet()) {
             if (entry.getValue() == this.getID()) {
                 containedPlayers++;
             }

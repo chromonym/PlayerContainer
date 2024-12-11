@@ -1,7 +1,6 @@
 package io.github.chromonym.playercontainer.containers;
 
-import java.util.UUID;
-
+import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.util.Either;
 
 import io.github.chromonym.playercontainer.PlayerContainer;
@@ -46,9 +45,16 @@ public class AbstractContainer {
             PlayerContainer.LOGGER.warn("Player "+player.getNameForScoreboard()+" attempted capturing themselves!");
             return false;
         }
-        if (ci.getPlayerCount() < this.maxPlayers && !ci.getPlayers(player.getWorld()).contains(player)) {
+        for (GameProfile profile : ci.getPlayers(player.getWorld())) {
+            if (profile.getId() == player.getUuid()) {
+                // attempting to capture player already captured
+                PlayerContainer.LOGGER.info("Player "+profile.getName()+" already captured.");
+                return false;
+            }
+        }
+        if (ci.getPlayerCount() < this.maxPlayers) {
             PlayerContainer.LOGGER.info("Captured "+player.getNameForScoreboard()+" in container "+ci.getID().toString());
-            ContainerInstance.players.put(player.getUuid(), ci.getID());
+            ContainerInstance.players.put(player.getGameProfile(), ci.getID());
             if (!player.getWorld().isClient()) {
                 ServerPlayNetworking.send((ServerPlayerEntity)player, new ContainerInstancesPayload(ContainerInstance.containers, ContainerInstance.players));
             }
@@ -57,27 +63,24 @@ public class AbstractContainer {
         }
         return false;
     }
-
-    public final void onRelease(UUID player, World world, ContainerInstance<?> ci) {
-        if (ContainerInstance.players.get(player) == ci.getID()) {
-            ContainerInstance.players.remove(player);
-        }
-        PlayerEntity pEnt = world.getPlayerByUuid(player);
-        if (pEnt != null) {
-            onRelease(pEnt, ci);
-        }
+    
+    public void onRelease(PlayerEntity player, ContainerInstance<?> ci) {
+        onRelease(player.getGameProfile(), player.getWorld(), ci);
     }
 
-    public void onRelease(PlayerEntity player, ContainerInstance<?> ci) {
-        if (ContainerInstance.players.get(player.getUuid()) == ci.getID()) {
-            ContainerInstance.players.remove(player.getUuid());
+    public void onRelease(GameProfile profile, World world, ContainerInstance<?> ci) {
+        if (world.getPlayerByUuid(profile.getId()) == null) {
+            PlayerContainer.LOGGER.warn("Attempted to release player who is offline!"); // TODO handle this
         }
-        PlayerContainer.LOGGER.info("Released "+player.getNameForScoreboard()+" from container "+ci.getID().toString());
+        if (ContainerInstance.players.get(profile) == ci.getID()) {
+            ContainerInstance.players.remove(profile);
+            PlayerContainer.LOGGER.info("Released "+profile.getName()+" from container "+ci.getID().toString());
+        }
     }
 
     public void onReleaseAll(World world, ContainerInstance<?> ci) {
-        for (UUID player : ContainerInstance.players.keySet()) {
-            onRelease(player, world, ci);
+        for (GameProfile profile : ContainerInstance.players.keySet()) {
+            onRelease(profile, world, ci);
         }
         PlayerContainer.LOGGER.info("Released all players from container "+ci.getID().toString());
     }
