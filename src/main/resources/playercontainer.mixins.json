@@ -5,7 +5,10 @@
 	"mixins": [
 		"ItemEntityMixin",
 		"BlockEntityMixin",
-		"LivingEntityMixin"
+		"LivingEntityMixin",
+		"AbstractHorseEntityMixin",
+		"StorageMinecartEntityMixin",
+		"ChestBoatEntityMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

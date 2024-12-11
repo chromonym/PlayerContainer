@@ -7,6 +7,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import io.github.chromonym.playercontainer.items.SimpleContainerItem;
 import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
 
@@ -15,9 +16,16 @@ public class LivingEntityMixin {
     @Inject(method = "onEquipStack(Lnet/minecraft/entity/EquipmentSlot;Lnet/minecraft/item/ItemStack;Lnet/minecraft/item/ItemStack;)V", at = @At("HEAD"))
     public void trackContainerMovement(EquipmentSlot slot, ItemStack oldStack, ItemStack newStack, CallbackInfo ci) {
         if (!ItemStack.areItemsAndComponentsEqual(oldStack, newStack) && !((LivingEntity)(Object)this).getWorld().isClient()) {
-            if (newStack.getItem() instanceof SimpleContainerItem sci) {
+            if (newStack.getItem() instanceof SimpleContainerItem<?> sci) {
                 sci.getOrMakeContainerInstance(newStack, ((LivingEntity)(Object)this).getWorld()).setOwner((LivingEntity)(Object)this);
             }
+        }
+    }
+
+    @Inject(method = "triggerItemPickedUpByEntityCriteria(Lnet/minecraft/entity/ItemEntity;)V", at = @At("HEAD"))
+    public void trackContainerMovementB(ItemEntity item, CallbackInfo ci) {
+        if (!((LivingEntity)(Object)this).getWorld().isClient() && item.getStack().getItem() instanceof SimpleContainerItem<?> sci) {
+            sci.getOrMakeContainerInstance(item.getStack(), ((LivingEntity)(Object)this).getWorld()).setOwner((LivingEntity)(Object)this);
         }
     }
 }
