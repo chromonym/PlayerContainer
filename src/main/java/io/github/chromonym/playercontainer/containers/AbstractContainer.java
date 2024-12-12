@@ -1,5 +1,8 @@
 package io.github.chromonym.playercontainer.containers;
 
+import java.util.UUID;
+import java.util.Map.Entry;
+
 import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.util.Either;
 
@@ -30,7 +33,7 @@ public class AbstractContainer {
         this.maxPlayers = maxPlayers;
     }
 
-    public void onOwnerChange(Either<Entity,BlockEntity> newOwner, ContainerInstance<?> ci) {
+    public final void setOwner(Either<Entity,BlockEntity> newOwner, ContainerInstance<?> ci) {
         if (ci != null) {
             newOwner.ifLeft(entity -> {
                 PlayerContainer.LOGGER.info("Container "+ci.getID().toString()+" now owned by "+entity.getNameForScoreboard());
@@ -40,8 +43,12 @@ public class AbstractContainer {
         }
     }
 
-    public boolean onCapture(PlayerEntity player, ContainerInstance<?> ci) {
-        if (ci.getOwner().left().isPresent() && ci.getOwner().left().get() == player) {
+    public final boolean capture(PlayerEntity player, ContainerInstance<?> ci) {
+        return capture(player, ci, false);
+    }
+
+    public final boolean capture(PlayerEntity player, ContainerInstance<?> ci, boolean recapturing) {
+        if (ci.getOwner().left().isPresent() && ci.getOwner().left().get().getUuid() == player.getUuid()) {
             PlayerContainer.LOGGER.warn("Player "+player.getNameForScoreboard()+" attempted capturing themselves!");
             return false;
         }
@@ -55,6 +62,9 @@ public class AbstractContainer {
         if (ci.getPlayerCount() < this.maxPlayers) {
             PlayerContainer.LOGGER.info("Captured "+player.getNameForScoreboard()+" in container "+ci.getID().toString());
             ContainerInstance.players.put(player.getGameProfile(), ci.getID());
+            if (!recapturing) { // if not attempting to recapture a player that was offline
+                this.onCapture(player, ci); // run onCapture (still do everything else the same tho)
+            }
             if (!player.getWorld().isClient()) {
                 ServerPlayNetworking.send((ServerPlayerEntity)player, new ContainerInstancesPayload(ContainerInstance.containers, ContainerInstance.players));
             }
@@ -63,30 +73,57 @@ public class AbstractContainer {
         }
         return false;
     }
+
+    public final void release(PlayerEntity player, ContainerInstance<?> ci) {
+        release(player, ci, false);
+    }
     
-    public void onRelease(PlayerEntity player, ContainerInstance<?> ci) {
-        onRelease(player.getGameProfile(), player.getWorld(), ci);
+    public final void release(PlayerEntity player, ContainerInstance<?> ci, boolean recaptureLater) {
+        release(player.getGameProfile(), player.getWorld(), ci, recaptureLater);
     }
 
-    public void onRelease(GameProfile profile, World world, ContainerInstance<?> ci) {
-        if (world.getPlayerByUuid(profile.getId()) == null) {
-            PlayerContainer.LOGGER.warn("Attempted to release player who is offline!"); // TODO handle this
-        }
-        if (ContainerInstance.players.get(profile) == ci.getID()) {
-            ContainerInstance.players.remove(profile);
-            PlayerContainer.LOGGER.info("Released "+profile.getName()+" from container "+ci.getID().toString());
+    public final void release(GameProfile profile, World world, ContainerInstance<?> ci, boolean recaptureLater) {
+        if (recaptureLater) { // if the player has just logged off (not actually released)
+            ContainerInstance.playersToRecapture.put(profile.getId(), ci.getID()); // add them to recapture list
+            ContainerInstance.players.remove(profile); // remove them from this container temporarily
+        } else if (world.getPlayerByUuid(profile.getId()) == null) { // otherwise, if the player is *already* offline,
+            ContainerInstance.playersToRecapture.remove(profile.getId()); // remove them from the recapture list
+            ContainerInstance.playersToRelease.put(profile.getId(), ci.getID()); // add them to the to release list
+            PlayerContainer.LOGGER.warn("Attempted to release player who is offline!"); // (this shouldn't happen because they shouldn't be captured if offline)
+        } else if (ContainerInstance.players.get(profile) == ci.getID()) { // otherwise if the player is online and captured
+            ContainerInstance.playersToRecapture.remove(profile.getId());
+            onRelease(world.getPlayerByUuid(profile.getId()), ci); // run onRelease
+            ContainerInstance.players.remove(profile); // remove them from the captured players
+            PlayerContainer.LOGGER.info("Released "+profile.getName()+" from container "+ci.getID().toString()); // log
         }
     }
 
-    public void onReleaseAll(World world, ContainerInstance<?> ci) {
+    public final void releaseAll(World world, ContainerInstance<?> ci) {
+        releaseAll(world, ci, false);
+    }
+
+    public final void releaseAll(World world, ContainerInstance<?> ci, boolean recaptureLater) {
         for (GameProfile profile : ContainerInstance.players.keySet()) {
-            onRelease(profile, world, ci);
+            release(profile, world, ci, recaptureLater);
+        }
+        for (Entry<UUID,UUID> entry : ContainerInstance.playersToRecapture.entrySet()) {
+            if (entry.getValue() == ci.getID()) {
+                ContainerInstance.playersToRelease.put(entry.getKey(), ci.getID());
+            }
         }
         PlayerContainer.LOGGER.info("Released all players from container "+ci.getID().toString());
     }
 
-    public void onDestroy(World world, ContainerInstance<?> ci) {
+    public final void destroy(World world, ContainerInstance<?> ci) {
         PlayerContainer.LOGGER.info("Destroyed container "+ci.getID().toString());
-        onReleaseAll(world, ci);
+        releaseAll(world, ci);
+    }
+
+    public void onCapture(PlayerEntity player, ContainerInstance<?> ci) {
+        PlayerContainer.LOGGER.info("Actually captured player "+player.getNameForScoreboard());
+    }
+
+    public void onRelease(PlayerEntity player, ContainerInstance<?> ci) {
+        PlayerContainer.LOGGER.info("Actually released player "+player.getNameForScoreboard());
     }
 }

@@ -55,7 +55,7 @@ public class SimpleContainerItem<C extends AbstractContainer> extends Item {
     public ActionResult useOnEntity(ItemStack stack, PlayerEntity user, LivingEntity entity, Hand hand) {
         ContainerInstance<?> cont = getOrMakeContainerInstance(user.getStackInHand(hand), user.getWorld());
         if (cont != null && entity instanceof PlayerEntity player) {
-            boolean bl = cont.getContainer().onCapture(player, cont);
+            boolean bl = cont.getContainer().capture(player, cont);
             return bl ? ActionResult.SUCCESS : ActionResult.CONSUME;
         }
         return super.useOnEntity(stack, user, entity, hand);
@@ -66,7 +66,7 @@ public class SimpleContainerItem<C extends AbstractContainer> extends Item {
         if (user.isSneaking()) {
             ContainerInstance<?> cont = getOrMakeContainerInstance(user.getStackInHand(hand), user.getWorld());
             if (cont != null) {
-                cont.getContainer().onReleaseAll(world, cont);
+                cont.getContainer().releaseAll(world, cont);
                 return TypedActionResult.success(user.getStackInHand(hand));
             }
         }
@@ -107,7 +107,7 @@ public class SimpleContainerItem<C extends AbstractContainer> extends Item {
     @Override
     public void onItemEntityDestroyed(ItemEntity entity) {
         ContainerInstance<?> cont = this.getOrMakeContainerInstance(entity.getStack(), entity.getWorld());
-        if (cont != null) {cont.onDestroy(entity.getWorld());}
+        if (cont != null) {cont.destroy(entity.getWorld());}
     }
     
 }

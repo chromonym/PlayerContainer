@@ -18,6 +18,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.chromonym.playercontainer.registries.Containers;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.registry.RegistryKey;
@@ -28,6 +29,8 @@ public class ContainerInstance<C extends AbstractContainer> {
 
     public static BiMap<UUID, ContainerInstance<?>> containers = HashBiMap.create();
     public static Map<GameProfile, UUID> players = new HashMap<GameProfile, UUID>(); // PLAYERS TO CONTAINERS!!
+    public static Map<UUID, UUID> playersToRecapture = new HashMap<UUID, UUID>(); // players that need to be recaptured by a given container when next possible
+    public static Map<UUID, UUID> playersToRelease = new HashMap<UUID, UUID>(); // players that need to be released when next possible
 
     public static final Codec<ContainerInstance<?>> CODEC = RecordCodecBuilder.create(
         instance -> instance.group(
@@ -112,7 +115,7 @@ public class ContainerInstance<C extends AbstractContainer> {
         if (entity != ownerEntity) {
             ownerBlockEntity = null;
             ownerEntity = entity;
-            container.onOwnerChange(Either.left(entity), this);
+            container.setOwner(Either.left(entity), this);
         }
     }
 
@@ -120,14 +123,26 @@ public class ContainerInstance<C extends AbstractContainer> {
         if (blockEntity != ownerBlockEntity) {
             ownerBlockEntity = blockEntity;
             ownerEntity = null;
-            container.onOwnerChange(Either.right(blockEntity), this);
+            container.setOwner(Either.right(blockEntity), this);
         }
     }
 
     // write methods in here that call the relevant AbstractContainer method
 
-    public void onDestroy(World world) {
+    public boolean capture(PlayerEntity player, boolean temp) {
+        return container.capture(player, this, temp);
+    }
+
+    public void release(PlayerEntity player, boolean temp) {
+        container.release(player, this, temp);
+    }
+
+    public void releaseAll(World world, boolean temp) {
+        container.releaseAll(world, this, temp);
+    }
+
+    public void destroy(World world) {
         containers.remove(ID);
-        container.onDestroy(world, this);
+        container.destroy(world, this);
     }
 }

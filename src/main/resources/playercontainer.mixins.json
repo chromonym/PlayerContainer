@@ -8,7 +8,8 @@
 		"LivingEntityMixin",
 		"AbstractHorseEntityMixin",
 		"StorageMinecartEntityMixin",
-		"ChestBoatEntityMixin"
+		"EntityMixin",
+		"ItemFrameEntityMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
