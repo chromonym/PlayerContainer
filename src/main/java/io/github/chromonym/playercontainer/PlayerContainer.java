@@ -47,7 +47,7 @@ public class PlayerContainer implements ModInitializer {
 				itemGroup.add(Items.testContainer);
 			});
 		ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
-			LOGGER.info("Entity loaded: "+entity.getNameForScoreboard());
+			//LOGGER.info("Entity loaded: "+entity.getNameForScoreboard());
 			if (entity instanceof PlayerEntity player) {
 				if (ContainerInstance.playersToRecapture.keySet().contains(player.getUuid())) {
 					ContainerInstance<?> ci = ContainerInstance.containers.get(ContainerInstance.playersToRecapture.get(player.getUuid()));

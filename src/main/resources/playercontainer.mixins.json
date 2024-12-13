@@ -3,13 +3,13 @@
 	"package": "io.github.chromonym.playercontainer.mixins",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-		"ItemEntityMixin",
 		"BlockEntityMixin",
 		"LivingEntityMixin",
 		"AbstractHorseEntityMixin",
 		"StorageMinecartEntityMixin",
 		"EntityMixin",
-		"ItemFrameEntityMixin"
+		"ItemStackMixin",
+		"ItemEntityMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

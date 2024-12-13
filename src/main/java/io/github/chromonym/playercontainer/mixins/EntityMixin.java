@@ -1,7 +1,9 @@
 package io.github.chromonym.playercontainer.mixins;
 
 import java.util.Map.Entry;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.spongepowered.asm.mixin.Mixin;
@@ -20,7 +22,7 @@ import net.minecraft.item.ItemStack;
 
 @Mixin(Entity.class)
 public class EntityMixin {
-    @Inject(method = "tick", at = @At("HEAD"))
+    @Inject(method = "baseTick", at = @At("HEAD"))
     public void trackContainerMovement(CallbackInfo ci) {
         Entity thisE = (Entity)(Object)this;
         if ((Entity)(Object)this instanceof Inventory inv) {
@@ -37,23 +39,31 @@ public class EntityMixin {
 
     @Inject(method = "setRemoved(Lnet/minecraft/entity/Entity/RemovalReason;)V", at = @At("HEAD"))
     public void trackContainerRemoval(RemovalReason reason, CallbackInfo ci) {
+        Set<ContainerInstance<?>> toDestroy = new HashSet<ContainerInstance<?>>();
+        Set<ContainerInstance<?>> toRemoveAll = new HashSet<ContainerInstance<?>>();
         Entity thisE = (Entity)(Object)this;
         for (Entry<UUID, ContainerInstance<?>> entry : ContainerInstance.containers.entrySet()) {
             Optional<Entity> owner = entry.getValue().getOwner().left();
             if (owner.isPresent() && owner.get().getUuid() == thisE.getUuid()) {
                 if (reason == RemovalReason.UNLOADED_TO_CHUNK || reason == RemovalReason.UNLOADED_WITH_PLAYER) {
                     PlayerContainer.LOGGER.info("Entity unloaded: "+thisE.getNameForScoreboard());
-                    entry.getValue().releaseAll(thisE.getWorld(), true);
-                } else if (reason == RemovalReason.DISCARDED ||
+                    toRemoveAll.add(entry.getValue()); // entry.getValue().releaseAll(thisE.getWorld(), true);
+                } else if ((reason == RemovalReason.DISCARDED && !((Entity)(Object)this instanceof ItemEntity)) ||
                 (reason == RemovalReason.KILLED && ((Entity)(Object)this instanceof ItemEntity))){
                     // entity despawned (or itemEntity is killed)
                     PlayerContainer.LOGGER.info("Entity despawned/killed: "+thisE.getNameForScoreboard());
-                    entry.getValue().destroy(thisE.getWorld());
-                    //entry.getValue().releaseAll(thisE.getWorld(), false);
+                    toDestroy.add(entry.getValue()); // entry.getValue().destroy(thisE.getWorld());
                 }
                 // other than that there should be another entity that becomes the new owner? i hope?
             }
         }
+        for (ContainerInstance<?> cont : toDestroy) {
+            cont.destroy(thisE.getWorld());
+        }
+        for (ContainerInstance<?> cont : toRemoveAll) {
+            cont.releaseAll(thisE.getWorld(), true);
+        }
+
         /*if (thisE instanceof PlayerEntity player && reason ==) {
             if (ContainerInstance.players.keySet().contains(player.getGameProfile())) {
                 // player is in a container

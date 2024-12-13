@@ -6,6 +6,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import io.github.chromonym.playercontainer.items.SimpleContainerItem;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
@@ -26,6 +27,15 @@ public class LivingEntityMixin {
     public void trackContainerMovementB(ItemEntity item, CallbackInfo ci) {
         if (!((LivingEntity)(Object)this).getWorld().isClient() && item.getStack().getItem() instanceof SimpleContainerItem<?> sci) {
             sci.getOrMakeContainerInstance(item.getStack(), ((LivingEntity)(Object)this).getWorld()).setOwner((LivingEntity)(Object)this);
+        }
+    }
+
+    @Inject(method="sendPickup(Lnet/minecraft/entity/Entity;I)V", at = @At("HEAD"))
+    public void trackContainerMovement(Entity item, int count, CallbackInfo ci) {
+        if (!item.isRemoved() && !((LivingEntity)(Object)this).getWorld().isClient() && item instanceof ItemEntity ie) {
+            if (ie.getStack().getItem() instanceof SimpleContainerItem<?> sci) {
+                sci.getOrMakeContainerInstance(ie.getStack(), ((LivingEntity)(Object)this).getWorld()).setOwner((LivingEntity)(Object)this);;
+            }
         }
     }
 }

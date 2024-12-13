@@ -62,8 +62,10 @@ public class AbstractContainer {
         if (ci.getPlayerCount() < this.maxPlayers) {
             PlayerContainer.LOGGER.info("Captured "+player.getNameForScoreboard()+" in container "+ci.getID().toString());
             ContainerInstance.players.put(player.getGameProfile(), ci.getID());
-            if (!recapturing) { // if not attempting to recapture a player that was offline
-                this.onCapture(player, ci); // run onCapture (still do everything else the same tho)
+            if (recapturing) {
+                onTempRecapture(player, ci);
+            } else {
+                onCapture(player, ci);
             }
             if (!player.getWorld().isClient()) {
                 ServerPlayNetworking.send((ServerPlayerEntity)player, new ContainerInstancesPayload(ContainerInstance.containers, ContainerInstance.players));
@@ -83,9 +85,12 @@ public class AbstractContainer {
     }
 
     public final void release(GameProfile profile, World world, ContainerInstance<?> ci, boolean recaptureLater) {
-        if (recaptureLater) { // if the player has just logged off (not actually released)
+        PlayerEntity player = world.getPlayerByUuid(profile.getId());
+        if (recaptureLater) { // if the player has just logged off or container is unavailable (not actually released)
             ContainerInstance.playersToRecapture.put(profile.getId(), ci.getID()); // add them to recapture list
-            ContainerInstance.players.remove(profile); // remove them from this container temporarily
+            if (ContainerInstance.players.remove(profile) != null && player != null) { // remove them from this container temporarily
+                onTempRelease(player, ci);
+            }
         } else if (world.getPlayerByUuid(profile.getId()) == null) { // otherwise, if the player is *already* offline,
             ContainerInstance.playersToRecapture.remove(profile.getId()); // remove them from the recapture list
             ContainerInstance.playersToRelease.put(profile.getId(), ci.getID()); // add them to the to release list
@@ -120,10 +125,24 @@ public class AbstractContainer {
     }
 
     public void onCapture(PlayerEntity player, ContainerInstance<?> ci) {
-        PlayerContainer.LOGGER.info("Actually captured player "+player.getNameForScoreboard());
+        /* Ran whenever a player is captured in the given ContainerInstance */
+        PlayerContainer.LOGGER.info("Properly captured player "+player.getNameForScoreboard());
     }
 
     public void onRelease(PlayerEntity player, ContainerInstance<?> ci) {
+        /* Ran whenever a player is released from the given ContainerInstance */
         PlayerContainer.LOGGER.info("Actually released player "+player.getNameForScoreboard());
+    }
+
+    public void onTempRelease(PlayerEntity player, ContainerInstance<?> ci) {
+        /* Ran whenever a player disconnects or the container becomes temporarily unavailable.
+         * NOTE: DOES NOT RUN on a real release! */
+        PlayerContainer.LOGGER.info("Temporarliy released player "+player.getNameForScoreboard());
+    }
+
+    public void onTempRecapture(PlayerEntity player, ContainerInstance<?> ci) {
+        /* Ran whenever a player is recaptured after being temporarily released
+         * NOTE: DOES NOT RUN on a real capture! */
+        PlayerContainer.LOGGER.info("Recaptured "+player.getNameForScoreboard());
     }
 }
