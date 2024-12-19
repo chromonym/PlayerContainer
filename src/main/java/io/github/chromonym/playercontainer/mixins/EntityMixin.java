@@ -11,7 +11,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import io.github.chromonym.playercontainer.PlayerContainer;
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
 import io.github.chromonym.playercontainer.items.SimpleContainerItem;
 import net.minecraft.entity.Entity;
@@ -58,22 +57,20 @@ public class EntityMixin {
             Optional<Entity> owner = entry.getValue().getOwner().left();
             if (owner.isPresent() && owner.get().getUuid() == thisE.getUuid()) {
                 if (reason == RemovalReason.UNLOADED_TO_CHUNK || reason == RemovalReason.UNLOADED_WITH_PLAYER) {
-                    PlayerContainer.LOGGER.info("Entity unloaded: "+thisE.getNameForScoreboard());
                     toRemoveAll.add(entry.getValue()); // entry.getValue().releaseAll(thisE.getWorld(), true);
                 } else if ((reason == RemovalReason.DISCARDED && !((Entity)(Object)this instanceof ItemEntity)) ||
                 (reason == RemovalReason.KILLED && ((Entity)(Object)this instanceof ItemEntity))){
                     // entity despawned (or itemEntity is killed)
-                    PlayerContainer.LOGGER.info("Entity despawned/killed: "+thisE.getNameForScoreboard());
                     toDestroy.add(entry.getValue()); // entry.getValue().destroy(thisE.getWorld());
                 }
                 // other than that there should be another entity that becomes the new owner? i hope?
             }
         }
         for (ContainerInstance<?> cont : toDestroy) {
-            cont.destroy(thisE.getWorld());
+            cont.destroy(thisE.getServer().getPlayerManager());
         }
         for (ContainerInstance<?> cont : toRemoveAll) {
-            cont.releaseAll(thisE.getWorld(), true);
+            cont.releaseAll(thisE.getServer().getPlayerManager(), true);
         }
     }
 }

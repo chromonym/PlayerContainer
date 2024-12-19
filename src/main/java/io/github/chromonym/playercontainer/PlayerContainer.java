@@ -23,6 +23,7 @@ import io.github.chromonym.playercontainer.registries.Items;
 import io.github.chromonym.playercontainer.registries.ItemComponents;
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
 import io.github.chromonym.playercontainer.networking.ContainerInstancesPayload;
+import io.github.chromonym.playercontainer.registries.Commands;
 import io.github.chromonym.playercontainer.registries.Containers;
 
 public class PlayerContainer implements ModInitializer {
@@ -44,11 +45,12 @@ public class PlayerContainer implements ModInitializer {
 		ItemComponents.initialize();
 		Items.initialize();
 		Containers.initialize();
+		Commands.intialize();
 
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL)
 			.register((itemGroup) -> {
 				itemGroup.add(Items.simpleContainer);
-				itemGroup.add(Items.testContainer);
+				//itemGroup.add(Items.testContainer);
 			});
 		/*ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
 			ContainerInstance.checkRecaptureDecapture(world);
@@ -62,7 +64,6 @@ public class PlayerContainer implements ModInitializer {
 		});
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
 			ServerPlayerEntity player = handler.getPlayer();
-			PlayerContainer.LOGGER.info("Player "+player.getNameForScoreboard()+" disconnected");
 			ContainerInstance.disconnectedPlayers.add(player.getUuid());
             if (ContainerInstance.players.keySet().contains(player.getGameProfile())) {
                 // player is in a container
@@ -74,15 +75,12 @@ public class PlayerContainer implements ModInitializer {
 			for (Entry<UUID, ContainerInstance<?>> entry : ContainerInstance.containers.entrySet()) {
 				Optional<BlockEntity> owner = entry.getValue().getOwner().right();
 				if (owner.isPresent() && owner.get().getPos() == blockEntity.getPos()) {
-					PlayerContainer.LOGGER.info("BlockEntity unloaded: "+blockEntity.getPos().toShortString());
                     toRemoveAll.add(entry.getValue()); // entry.getValue().releaseAll(world, true);
 				}
 			}
 			for (ContainerInstance<?> cont : toRemoveAll) {
-				cont.releaseAll(world, true);
+				cont.releaseAll(world.getServer().getPlayerManager(), true);
 			}
 		});
-
-		LOGGER.info("Hello Fabric world!");
 	}
 }

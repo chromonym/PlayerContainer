@@ -36,7 +36,7 @@ public class ItemEntityMixin {
     public void sanityCheck(CallbackInfo ci) {
         ItemEntity thisIE = ((ItemEntity)(Object)this);
         if (thisIE.getStack().getItem() instanceof SimpleContainerItem<?> sci && !thisIE.getWorld().isClient()) {
-            sci.getOrMakeContainerInstance(thisIE.getStack(), thisIE.getWorld()).destroy(thisIE.getWorld());
+            sci.getOrMakeContainerInstance(thisIE.getStack(), thisIE.getWorld()).destroy(thisIE.getServer().getPlayerManager());
         }
     }
 

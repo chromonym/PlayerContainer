@@ -17,7 +17,6 @@ import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import io.github.chromonym.playercontainer.PlayerContainer;
 import io.github.chromonym.playercontainer.registries.Containers;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
@@ -25,6 +24,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.server.PlayerManager;
 import net.minecraft.util.Uuids;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -79,7 +79,7 @@ public class ContainerInstance<C extends AbstractContainer> {
         return container;
     }
 
-    public Set<GameProfile> getPlayers(World world) {
+    public Set<GameProfile> getPlayers() {
         Set<GameProfile> containedPlayers = new HashSet<GameProfile>();
         for (Entry<GameProfile, UUID> entry : players.entrySet()) {
             if (entry.getValue() == this.getID()) {
@@ -124,7 +124,7 @@ public class ContainerInstance<C extends AbstractContainer> {
         Map<PlayerEntity, ContainerInstance<?>> recaptured = new HashMap<PlayerEntity, ContainerInstance<?>>();
         Map<PlayerEntity, ContainerInstance<?>> released = new HashMap<PlayerEntity, ContainerInstance<?>>();
         for (Entry<UUID, UUID> entry : playersToRecapture.entrySet()) {
-            PlayerEntity player = world.getPlayerByUuid(entry.getKey());
+            PlayerEntity player = world.getServer().getPlayerManager().getPlayer(entry.getKey());
             if (player != null && !disconnectedPlayers.contains(player.getUuid())) {
                 ContainerInstance<?> cont = containers.get(entry.getValue());
                 cont.getOwner().ifLeft(entity -> {
@@ -151,9 +151,8 @@ public class ContainerInstance<C extends AbstractContainer> {
             ContainerInstance.playersToRecapture.remove(entry.getKey().getUuid());
         }
         for (Entry<UUID, UUID> entry : playersToRelease.entrySet()) {
-            PlayerEntity player = world.getPlayerByUuid(entry.getKey());
+            PlayerEntity player = world.getServer().getPlayerManager().getPlayer(entry.getKey());
             if (player != null) {
-                PlayerContainer.LOGGER.info("Release: "+entry.getKey().toString() +", "+entry.getValue().toString());
                 ContainerInstance<?> cont = containers.get(entry.getValue());
                 cont.getOwner().ifLeft(entity -> {
                     if (world.getEntityById(entity.getId()) != null) {
@@ -176,19 +175,36 @@ public class ContainerInstance<C extends AbstractContainer> {
         }
     }
 
+    public static void releasePlayer(PlayerEntity player) {
+        for (GameProfile profile : ContainerInstance.players.keySet()) {
+            if (profile.getId() == player.getUuid()) {
+                UUID contID = players.get(profile);
+                if (contID != null && containers.containsKey(contID)) {
+                    ContainerInstance<?> ci = containers.get(contID);
+                    ci.release(player, false);
+                }
+            }
+        }
+        for (Entry<UUID,UUID> entry : ContainerInstance.playersToRecapture.entrySet()) {
+            if (entry.getKey() == player.getUuid()) {
+                ContainerInstance.playersToRelease.put(entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
     public void setOwner(Entity entity) {
         if (entity != ownerEntity) {
+            container.onOwnerChange(getOwner(), Either.left(entity), this);
             ownerBlockEntity = null;
             ownerEntity = entity;
-            container.setOwner(Either.left(entity), this);
         }
     }
 
     public void setOwner(BlockEntity blockEntity) {
         if (blockEntity != ownerBlockEntity) {
+            container.onOwnerChange(getOwner(), Either.right(blockEntity), this);
             ownerBlockEntity = blockEntity;
             ownerEntity = null;
-            container.setOwner(Either.right(blockEntity), this);
         }
     }
 
@@ -202,12 +218,12 @@ public class ContainerInstance<C extends AbstractContainer> {
         container.release(player, this, temp);
     }
 
-    public void releaseAll(World world, boolean temp) {
-        container.releaseAll(world, this, temp);
+    public void releaseAll(PlayerManager players, boolean temp) {
+        container.releaseAll(players, this, temp);
     }
 
-    public void destroy(World world) {
+    public void destroy(PlayerManager players) {
         containers.remove(ID);
-        container.destroy(world, this);
+        container.destroy(players, this);
     }
 }
