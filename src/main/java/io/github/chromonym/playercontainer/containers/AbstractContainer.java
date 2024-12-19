@@ -36,7 +36,9 @@ public class AbstractContainer {
     public final void setOwner(Either<Entity,BlockEntity> newOwner, ContainerInstance<?> ci) {
         if (ci != null) {
             newOwner.ifLeft(entity -> {
-                PlayerContainer.LOGGER.info("Container "+ci.getID().toString()+" now owned by "+entity.getNameForScoreboard());
+                if (!(entity instanceof PlayerEntity pe && pe.getGameProfile() == null)) { // this occurs if a player dies with keepinventory
+                    PlayerContainer.LOGGER.info("Container "+ci.getID().toString()+" now owned by "+entity.getNameForScoreboard());
+                }
             }).ifRight(blockEntity -> {
                 PlayerContainer.LOGGER.info("Container "+ci.getID().toString()+" now owned by "+blockEntity.getPos().toShortString());
             });
@@ -48,23 +50,24 @@ public class AbstractContainer {
     }
 
     public final boolean capture(PlayerEntity player, ContainerInstance<?> ci, boolean recapturing) {
+        if (recapturing) {
+            onTempRecapture(player, ci);
+        }
         if (ci.getOwner().left().isPresent() && ci.getOwner().left().get().getUuid() == player.getUuid()) {
             PlayerContainer.LOGGER.warn("Player "+player.getNameForScoreboard()+" attempted capturing themselves!");
             return false;
         }
         for (GameProfile profile : ci.getPlayers(player.getWorld())) {
-            if (profile.getId() == player.getUuid()) {
+            if (profile.getId() == player.getUuid() && !recapturing) {
                 // attempting to capture player already captured
                 PlayerContainer.LOGGER.info("Player "+profile.getName()+" already captured.");
                 return false;
             }
         }
-        if (ci.getPlayerCount() < this.maxPlayers) {
+        if (ci.getPlayerCount(player) < this.maxPlayers) {
             PlayerContainer.LOGGER.info("Captured "+player.getNameForScoreboard()+" in container "+ci.getID().toString());
-            ContainerInstance.players.put(player.getGameProfile(), ci.getID());
-            if (recapturing) {
-                onTempRecapture(player, ci);
-            } else {
+            if (!recapturing) {
+                ContainerInstance.players.put(player.getGameProfile(), ci.getID());
                 onCapture(player, ci);
             }
             if (!player.getWorld().isClient()) {
@@ -73,6 +76,7 @@ public class AbstractContainer {
             //((ServerWorld)player.getWorld()).getEntitiesByType(TypeFilter.instanceOf(LivingEntity.class), EntityPredicates.VALID_INVENTORIES);
             return true;
         }
+        PlayerContainer.LOGGER.info("CONTAINER IS FULL SOMEHOW");
         return false;
     }
 
@@ -92,7 +96,7 @@ public class AbstractContainer {
                 onTempRelease(player, ci);
             }
         } else if (world.getPlayerByUuid(profile.getId()) == null) { // otherwise, if the player is *already* offline,
-            ContainerInstance.playersToRecapture.remove(profile.getId()); // remove them from the recapture list
+            // ContainerInstance.playersToRecapture.remove(profile.getId()); // remove them from the recapture list
             ContainerInstance.playersToRelease.put(profile.getId(), ci.getID()); // add them to the to release list
             PlayerContainer.LOGGER.warn("Attempted to release player who is offline!"); // (this shouldn't happen because they shouldn't be captured if offline)
         } else if (ContainerInstance.players.get(profile) == ci.getID()) { // otherwise if the player is online and captured
@@ -111,12 +115,13 @@ public class AbstractContainer {
         for (GameProfile profile : ContainerInstance.players.keySet()) {
             release(profile, world, ci, recaptureLater);
         }
-        for (Entry<UUID,UUID> entry : ContainerInstance.playersToRecapture.entrySet()) {
-            if (entry.getValue() == ci.getID()) {
-                ContainerInstance.playersToRelease.put(entry.getKey(), ci.getID());
+        if (!recaptureLater) {
+            for (Entry<UUID,UUID> entry : ContainerInstance.playersToRecapture.entrySet()) {
+                if (entry.getValue() == ci.getID()) {
+                    ContainerInstance.playersToRelease.put(entry.getKey(), entry.getValue());
+                }
             }
         }
-        PlayerContainer.LOGGER.info("Released all players from container "+ci.getID().toString());
     }
 
     public final void destroy(World world, ContainerInstance<?> ci) {

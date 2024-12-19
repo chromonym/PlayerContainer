@@ -1,16 +1,20 @@
 package io.github.chromonym.playercontainer;
 
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerBlockEntityEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.item.ItemGroups;
+import net.minecraft.server.network.ServerPlayerEntity;
 
-import java.util.Optional;
-import java.util.UUID;
+import java.util.HashSet;
 import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,28 +50,36 @@ public class PlayerContainer implements ModInitializer {
 				itemGroup.add(Items.simpleContainer);
 				itemGroup.add(Items.testContainer);
 			});
-		ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
-			//LOGGER.info("Entity loaded: "+entity.getNameForScoreboard());
-			if (entity instanceof PlayerEntity player) {
-				if (ContainerInstance.playersToRecapture.keySet().contains(player.getUuid())) {
-					ContainerInstance<?> ci = ContainerInstance.containers.get(ContainerInstance.playersToRecapture.get(player.getUuid()));
-					if (ci.capture(player, true)) {
-						ContainerInstance.playersToRecapture.remove(player.getUuid());
-					} else {
-						LOGGER.info("Could not recapture player "+player.getNameForScoreboard()+", releasing instead");
-						ci.release(player, false);
-					}
+		/*ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
+			ContainerInstance.checkRecaptureDecapture(world);
+		});
+		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+			ContainerInstance.checkRecaptureDecapture(handler.getPlayer().getWorld());
+		});*/
+		ServerTickEvents.END_WORLD_TICK.register(world -> {
+			ContainerInstance.checkRecaptureDecapture(world);
+			ContainerInstance.disconnectedPlayers.clear();
+		});
+		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+			ServerPlayerEntity player = handler.getPlayer();
+			PlayerContainer.LOGGER.info("Player "+player.getNameForScoreboard()+" disconnected");
+			ContainerInstance.disconnectedPlayers.add(player.getUuid());
+            if (ContainerInstance.players.keySet().contains(player.getGameProfile())) {
+                // player is in a container
+                ContainerInstance.containers.get(ContainerInstance.players.get(player.getGameProfile())).release(player, true); // temporarily release that player
+            }
+		});
+		ServerBlockEntityEvents.BLOCK_ENTITY_UNLOAD.register((blockEntity, world) -> {
+			Set<ContainerInstance<?>> toRemoveAll = new HashSet<ContainerInstance<?>>();
+			for (Entry<UUID, ContainerInstance<?>> entry : ContainerInstance.containers.entrySet()) {
+				Optional<BlockEntity> owner = entry.getValue().getOwner().right();
+				if (owner.isPresent() && owner.get().getPos() == blockEntity.getPos()) {
+					PlayerContainer.LOGGER.info("BlockEntity unloaded: "+blockEntity.getPos().toShortString());
+                    toRemoveAll.add(entry.getValue()); // entry.getValue().releaseAll(world, true);
 				}
 			}
-			for (Entry<UUID, UUID> entry : ContainerInstance.playersToRecapture.entrySet()) {
-				PlayerEntity player = world.getPlayerByUuid(entry.getKey());
-				if (player != null) {
-					ContainerInstance<?> ci = ContainerInstance.containers.get(entry.getValue());
-					Optional<Entity> owner = ci.getOwner().left();
-					if (owner.isPresent() && owner.get().getUuid() == entity.getUuid()) {
-						ci.capture(player, true);
-					}
-				}
+			for (ContainerInstance<?> cont : toRemoveAll) {
+				cont.releaseAll(world, true);
 			}
 		});
 

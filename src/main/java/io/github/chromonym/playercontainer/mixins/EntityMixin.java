@@ -22,6 +22,18 @@ import net.minecraft.item.ItemStack;
 
 @Mixin(Entity.class)
 public class EntityMixin {
+
+    @Inject(method = "setUuid(Ljava/util/UUID;)V", at = @At("HEAD"))
+    public void trackOwnerUpdating(UUID uuid, CallbackInfo ci) {
+        Entity thisE = (Entity)(Object)this;
+        for (Entry<UUID, ContainerInstance<?>> entry : ContainerInstance.containers.entrySet()) {
+            Optional<Entity> owner = entry.getValue().getOwner().left();
+            if (owner.isPresent() && owner.get().getUuid() == uuid) {
+                entry.getValue().setOwner(thisE);
+            }
+        }
+    }
+
     @Inject(method = "baseTick", at = @At("HEAD"))
     public void trackContainerMovement(CallbackInfo ci) {
         Entity thisE = (Entity)(Object)this;
@@ -63,12 +75,5 @@ public class EntityMixin {
         for (ContainerInstance<?> cont : toRemoveAll) {
             cont.releaseAll(thisE.getWorld(), true);
         }
-
-        /*if (thisE instanceof PlayerEntity player && reason ==) {
-            if (ContainerInstance.players.keySet().contains(player.getGameProfile())) {
-                // player is in a container
-                ContainerInstance.containers.get(ContainerInstance.players.get(player.getGameProfile())).release(player, true); // temporarily release that player
-            }
-        }*/
     }
 }
