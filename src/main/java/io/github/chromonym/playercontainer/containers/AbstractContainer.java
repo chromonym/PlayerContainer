@@ -134,4 +134,7 @@ public abstract class AbstractContainer {
     public abstract void onDestroy(ContainerInstance<?> ci);
     // Ran whenever this container is destroyed (through its owner despawning (NOT unloading) or its item entity being killed)
     // NOTE: onRelease is still ran for all contained players!
+
+    public abstract void onPlayerTick(ServerPlayerEntity player, ContainerInstance<?> ci);
+    // Ran every tick in the playerTick function for all captured players
 }

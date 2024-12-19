@@ -25,6 +25,7 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.PlayerManager;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Uuids;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -225,5 +226,9 @@ public class ContainerInstance<C extends AbstractContainer> {
     public void destroy(PlayerManager players) {
         containers.remove(ID);
         container.destroy(players, this);
+    }
+
+    public void onPlayerTick(ServerPlayerEntity player) {
+        container.onPlayerTick(player, this);
     }
 }

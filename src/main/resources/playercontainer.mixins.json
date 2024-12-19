@@ -9,7 +9,8 @@
 		"StorageMinecartEntityMixin",
 		"EntityMixin",
 		"ItemStackMixin",
-		"ItemEntityMixin"
+		"ItemEntityMixin",
+		"ServerPlayerEntityMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

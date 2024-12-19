@@ -49,7 +49,8 @@ public class PlayerContainer implements ModInitializer {
 
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL)
 			.register((itemGroup) -> {
-				itemGroup.add(Items.simpleContainer);
+				itemGroup.add(Items.basicContainer);
+				itemGroup.add(Items.debugContainer);
 				//itemGroup.add(Items.testContainer);
 			});
 		/*ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {

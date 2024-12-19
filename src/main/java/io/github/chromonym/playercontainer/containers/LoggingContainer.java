@@ -6,6 +6,7 @@ import io.github.chromonym.playercontainer.PlayerContainer;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 public class LoggingContainer extends AbstractContainer {
 
@@ -46,6 +47,11 @@ public class LoggingContainer extends AbstractContainer {
     @Override
     public void onDestroy(ContainerInstance<?> ci) {
         PlayerContainer.LOGGER.info("Destroyed container "+ci.getID().toString());
+    }
+
+    @Override
+    public void onPlayerTick(ServerPlayerEntity player, ContainerInstance<?> ci) {
+        // Does nothing
     }
     
 }
