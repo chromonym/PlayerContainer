@@ -19,8 +19,14 @@ public class PlayerEntityMixin {
         if (ContainerInstance.players.containsKey(pe.getGameProfile())) {
             ContainerInstance<?> conti = ContainerInstance.containers.get(ContainerInstance.players.get(pe.getGameProfile()));
             if (conti.getContainer() instanceof SpectatorContainer) {
-                // if this player is captured in a SpectatorContainer, don't let them move through blocks
-                pe.noClip = false;
+                // if this player is captured in a SpectatorContainer, don't let them move through blocks (except the container block)
+                conti.getOwner().ifLeft(entity -> {
+                    pe.noClip = false;
+                }).ifRight(blockEntity -> {
+                    if (blockEntity == null || !SpectatorContainer.isWithinBlock(pe.getEyePos(), blockEntity.getPos())) {
+                        pe.noClip = false;
+                    }
+                });
             }
         }
     }

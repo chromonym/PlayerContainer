@@ -15,7 +15,7 @@ public class Containers {
     public static final Registry<AbstractContainer> REGISTRY = FabricRegistryBuilder.createSimple(REGISTRY_KEY).buildAndRegister();
 
     public static final LoggingContainer LOGGING_CONTAINER = register(new LoggingContainer(), "logging");
-    public static final SpectatorContainer SPECTATOR_CONTAINER = register(new SpectatorContainer(3), "spectator");
+    public static final SpectatorContainer SPECTATOR_CONTAINER = register(new SpectatorContainer(10.5,20.5), "spectator");
 
     public static <I extends AbstractContainer> I register(I container, String id) {
         Identifier itemID = PlayerContainer.identifier(id);
