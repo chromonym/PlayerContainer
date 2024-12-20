@@ -7,8 +7,6 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.util.Either;
 
 import io.github.chromonym.playercontainer.PlayerContainer;
-import io.github.chromonym.playercontainer.networking.ContainerInstancesPayload;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -38,6 +36,15 @@ public abstract class AbstractContainer {
     }
 
     public final boolean capture(PlayerEntity player, ContainerInstance<?> ci, boolean recapturing) {
+        if (ContainerInstance.players.containsKey(player.getGameProfile()) && ContainerInstance.players.get(player.getGameProfile()) != ci.getID()) {
+            // player is already captured
+            ContainerInstance.containers.get(ContainerInstance.players.get(player.getGameProfile())).release(player, false);
+        }
+        if (ContainerInstance.playersToRecapture.containsKey(player.getUuid()) && ContainerInstance.playersToRecapture.get(player.getUuid()) != ci.getID()) {
+            // player is already captured but offline
+            PlayerContainer.LOGGER.warn("Unsuccessfully attempted to capture a player who is offline *and* already caught");
+            return false;
+        }
         if (recapturing) {
             onTempRecapture(player, ci);
         }
@@ -53,12 +60,12 @@ public abstract class AbstractContainer {
             }
         }
         if (ci.getPlayerCount(player) < this.maxPlayers) {
+            ContainerInstance.players.put(player.getGameProfile(), ci.getID());
             if (!recapturing) {
-                ContainerInstance.players.put(player.getGameProfile(), ci.getID());
                 onCapture(player, ci);
             }
             if (!player.getWorld().isClient()) {
-                ServerPlayNetworking.send((ServerPlayerEntity)player, new ContainerInstancesPayload(ContainerInstance.containers, ContainerInstance.players));
+                PlayerContainer.sendCIPtoAll(player.getServer().getPlayerManager());
             }
             //((ServerWorld)player.getWorld()).getEntitiesByType(TypeFilter.instanceOf(LivingEntity.class), EntityPredicates.VALID_INVENTORIES);
             return true;
@@ -80,6 +87,9 @@ public abstract class AbstractContainer {
             ContainerInstance.playersToRecapture.put(profile.getId(), ci.getID()); // add them to recapture list
             if (ContainerInstance.players.remove(profile) != null && player != null) { // remove them from this container temporarily
                 onTempRelease(player, ci);
+                if (!player.getWorld().isClient()) {
+                    PlayerContainer.sendCIPtoAll(player.getServer().getPlayerManager());
+                }
             }
         } else if (players.getPlayer(profile.getId()) == null) { // otherwise, if the player is *already* offline,
             // ContainerInstance.playersToRecapture.remove(profile.getId()); // remove them from the recapture list
@@ -89,6 +99,9 @@ public abstract class AbstractContainer {
             ContainerInstance.playersToRecapture.remove(profile.getId());
             onRelease(players.getPlayer(profile.getId()), ci); // run onRelease
             ContainerInstance.players.remove(profile); // remove them from the captured players
+            if (!player.getWorld().isClient()) {
+                PlayerContainer.sendCIPtoAll(player.getServer().getPlayerManager());
+            }
         }
     }
 

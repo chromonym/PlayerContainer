@@ -16,7 +16,7 @@ public class Items {
     public static final SimpleContainerItem<SpectatorContainer> basicContainer = register(new SimpleContainerItem<SpectatorContainer>(Containers.SPECTATOR_CONTAINER, new Item.Settings()), "basic_container");
 
     public static <I extends Item> I register(I item, String id) {
-        Identifier itemID = Identifier.of(PlayerContainer.MOD_ID, id);
+        Identifier itemID = PlayerContainer.identifier(id);
         I registeredItem = Registry.register(Registries.ITEM, itemID, item);
         return registeredItem;
     }

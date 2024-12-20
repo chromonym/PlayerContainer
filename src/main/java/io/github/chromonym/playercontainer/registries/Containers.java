@@ -11,14 +11,14 @@ import net.minecraft.util.Identifier;
 
 public class Containers {
     
-    public static final RegistryKey<Registry<AbstractContainer>> REGISTRY_KEY = RegistryKey.ofRegistry(Identifier.of(PlayerContainer.MOD_ID, "containers"));
+    public static final RegistryKey<Registry<AbstractContainer>> REGISTRY_KEY = RegistryKey.ofRegistry(PlayerContainer.identifier("containers"));
     public static final Registry<AbstractContainer> REGISTRY = FabricRegistryBuilder.createSimple(REGISTRY_KEY).buildAndRegister();
 
     public static final LoggingContainer LOGGING_CONTAINER = register(new LoggingContainer(), "logging");
-    public static final SpectatorContainer SPECTATOR_CONTAINER = register(new SpectatorContainer(), "spectator");
+    public static final SpectatorContainer SPECTATOR_CONTAINER = register(new SpectatorContainer(3), "spectator");
 
     public static <I extends AbstractContainer> I register(I container, String id) {
-        Identifier itemID = Identifier.of(PlayerContainer.MOD_ID, id);
+        Identifier itemID = PlayerContainer.identifier(id);
         I registeredItem = Registry.register(REGISTRY, itemID, container);
         return registeredItem;
     }

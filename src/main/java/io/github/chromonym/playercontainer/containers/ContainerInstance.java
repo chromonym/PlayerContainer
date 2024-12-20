@@ -52,7 +52,7 @@ public class ContainerInstance<C extends AbstractContainer> {
     
 
     private final C container;
-    private final UUID ID;
+    private UUID ID;
     private Entity ownerEntity;
     private BlockEntity ownerBlockEntity;
 
@@ -73,11 +73,21 @@ public class ContainerInstance<C extends AbstractContainer> {
     }
 
     public UUID getID() {
-        return ID;
+        UUID uid = containers.inverse().get(this);
+        if (uid == null) {
+            return ID;
+        } else {
+            ID = uid;
+            return uid;
+        }
     }
 
     public C getContainer() {
         return container;
+    }
+
+    public int getMaxPlayerCount() {
+        return container.maxPlayers;
     }
 
     public Set<GameProfile> getPlayers() {
@@ -146,8 +156,6 @@ public class ContainerInstance<C extends AbstractContainer> {
         for (Entry<PlayerEntity,ContainerInstance<?>> entry : recaptured.entrySet()) {
             if (!entry.getValue().capture(entry.getKey(), true)) {
                 entry.getValue().release(entry.getKey(), false);
-            } else {
-                ContainerInstance.players.put(entry.getKey().getGameProfile(), entry.getValue().getID());
             }
             ContainerInstance.playersToRecapture.remove(entry.getKey().getUuid());
         }

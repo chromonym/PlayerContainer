@@ -6,9 +6,12 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.item.ItemGroups;
+import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.Identifier;
 
 import java.util.HashSet;
 import java.util.Map.Entry;
@@ -63,6 +66,10 @@ public class PlayerContainer implements ModInitializer {
 			ContainerInstance.checkRecaptureDecapture(world);
 			ContainerInstance.disconnectedPlayers.clear();
 		});
+		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+			sender.sendPacket(new ContainerInstancesPayload(ContainerInstance.containers, ContainerInstance.players), null);
+
+		});
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
 			ServerPlayerEntity player = handler.getPlayer();
 			ContainerInstance.disconnectedPlayers.add(player.getUuid());
@@ -83,5 +90,15 @@ public class PlayerContainer implements ModInitializer {
 				cont.releaseAll(world.getServer().getPlayerManager(), true);
 			}
 		});
+	}
+
+	public static void sendCIPtoAll(PlayerManager players) {
+		for (ServerPlayerEntity player : players.getPlayerList()) {
+            ServerPlayNetworking.send(player, new ContainerInstancesPayload(ContainerInstance.containers, ContainerInstance.players));
+		}
+	}
+
+	public static Identifier identifier(String id) {
+		return Identifier.of(MOD_ID, id);
 	}
 }

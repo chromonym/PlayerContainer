@@ -1,0 +1,6 @@
+{
+    "item.playercontainer.basic_container": "Basic Container",
+    "item.playercontainer.debug_container": "Debug Container",
+    
+    "tooltip.playercontainer.contains": "Contains:"
+}
