@@ -3,6 +3,9 @@ package io.github.chromonym.playercontainer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
@@ -17,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import io.github.chromonym.playercontainer.registries.*;
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
+import io.github.chromonym.playercontainer.items.AbstractContainerItem;
 import io.github.chromonym.playercontainer.networking.ContainerInstancesPayload;
 
 public class PlayerContainer implements ModInitializer {
@@ -64,6 +68,35 @@ public class PlayerContainer implements ModInitializer {
 			ContainerInstance.containers.remove(cont);
 		}
 		sendCIPtoAll(players);
+	}
+
+	public static void destroyMissingContainers(PlayerManager players) {
+		Set<ContainerInstance<?>> toDestroy = new HashSet<ContainerInstance<?>>();
+		for (ContainerInstance<?> ci : ContainerInstance.containers.values()) {
+			ci.getOwner().ifLeft(entity -> {
+				if (entity instanceof PlayerEntity owner) {
+					ServerPlayerEntity player = players.getPlayer(owner.getUuid());
+					if (player != null && player.isInCreativeMode()) {
+						PlayerInventory inv = player.getInventory();
+						// owning player exists and is online
+						boolean found = false;
+						for(int i = 0; i < inv.size(); ++i) {
+							ItemStack stack = inv.getStack(i);
+							if (!stack.isEmpty() && stack.getItem() instanceof AbstractContainerItem<?> containerItem) {
+								if (containerItem.getOrMakeContainerInstance(stack, player.getWorld()).getID() == ci.getID())
+								found = true;
+							}
+						}
+						if (!found) {
+							toDestroy.add(ci);
+						}
+					}
+				}
+			});
+		}
+		for (ContainerInstance<?> ci : toDestroy) {
+			ci.destroy(players);
+		}
 	}
 
 	public static Identifier identifier(String id) {

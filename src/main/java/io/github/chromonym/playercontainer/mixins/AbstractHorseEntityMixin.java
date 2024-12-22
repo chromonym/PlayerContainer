@@ -5,7 +5,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import io.github.chromonym.playercontainer.items.SimpleContainerItem;
+import io.github.chromonym.playercontainer.items.AbstractContainerItem;
 import net.minecraft.entity.passive.AbstractHorseEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
@@ -17,7 +17,7 @@ public class AbstractHorseEntityMixin {
         AbstractHorseEntity thisAH = ((AbstractHorseEntity)(Object)this);
         for(int i = 0; i < inv.size(); ++i) {
             ItemStack stack = inv.getStack(i);
-            if (!stack.isEmpty() && stack.getItem() instanceof SimpleContainerItem<?> containerItem && !thisAH.getWorld().isClient()) {
+            if (!stack.isEmpty() && stack.getItem() instanceof AbstractContainerItem<?> containerItem && !thisAH.getWorld().isClient()) {
                 containerItem.getOrMakeContainerInstance(stack, thisAH.getWorld()).setOwner(thisAH);
             }
         }

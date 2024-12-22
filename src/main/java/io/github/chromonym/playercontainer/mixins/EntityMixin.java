@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
-import io.github.chromonym.playercontainer.items.SimpleContainerItem;
+import io.github.chromonym.playercontainer.items.AbstractContainerItem;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.Entity.RemovalReason;
@@ -40,7 +40,7 @@ public class EntityMixin {
             if (!thisE.getWorld().isClient()) {
                 for(int i = 0; i < inv.size(); ++i) {
                     ItemStack stack = inv.getStack(i);
-                    if (!stack.isEmpty() && stack.getItem() instanceof SimpleContainerItem<?> containerItem) {
+                    if (!stack.isEmpty() && stack.getItem() instanceof AbstractContainerItem<?> containerItem) {
                         containerItem.getOrMakeContainerInstance(stack, thisE.getWorld()).setOwner(thisE);
                     }
                 }

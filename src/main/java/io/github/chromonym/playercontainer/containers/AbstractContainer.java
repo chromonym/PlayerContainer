@@ -60,9 +60,16 @@ public abstract class AbstractContainer {
             }
         }
         if (ci.getPlayerCount(player) < this.maxPlayers) {
-            ContainerInstance.players.put(player.getGameProfile(), ci.getID());
             if (!recapturing) {
+                ContainerInstance.players.put(player.getGameProfile(), ci.getID());
                 onCapture(player, ci);
+            } else {
+                for (GameProfile prof : ContainerInstance.players.keySet()) {
+                    if (prof.getId() == player.getUuid()) { // hopefully this should deal with people changing their username??? hopefully(tm)
+                        UUID reAdd = ContainerInstance.players.remove(prof);
+                        ContainerInstance.players.put(player.getGameProfile(), reAdd);
+                    }
+                }
             }
             if (!player.getWorld().isClient()) {
                 PlayerContainer.sendCIPtoAll(player.getServer().getPlayerManager());
@@ -85,7 +92,7 @@ public abstract class AbstractContainer {
         PlayerEntity player = players.getPlayer(profile.getId());
         if (recaptureLater) { // if the player has just logged off or container is unavailable (not actually released)
             ContainerInstance.playersToRecapture.put(profile.getId(), ci.getID()); // add them to recapture list
-            if (ContainerInstance.players.remove(profile) != null && player != null) { // remove them from this container temporarily
+            if (ContainerInstance.players.containsKey(profile) && player != null) { // remove them from this container temporarily
                 onTempRelease(player, ci);
                 if (!player.getWorld().isClient()) {
                     PlayerContainer.sendCIPtoAll(player.getServer().getPlayerManager());

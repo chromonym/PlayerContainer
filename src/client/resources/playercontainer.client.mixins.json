@@ -3,7 +3,8 @@
 	"package": "io.github.chromonym.playercontainer.mixin.client",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
-		"ExampleClientMixin"
+		"ExampleClientMixin",
+		"InGameOverlayRendererMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

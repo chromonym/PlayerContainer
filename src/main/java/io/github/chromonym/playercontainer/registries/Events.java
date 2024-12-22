@@ -33,6 +33,7 @@ public class Events {
                 // every one minute (for testing - increase later)
                 PlayerContainer.cleanContainers(server.getPlayerManager());
             }
+            PlayerContainer.destroyMissingContainers(server.getPlayerManager());
         });
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 			sender.sendPacket(new ContainerInstancesPayload(ContainerInstance.containers, ContainerInstance.players), null);
