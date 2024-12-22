@@ -17,17 +17,20 @@ import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import io.github.chromonym.playercontainer.PlayerContainer;
 import io.github.chromonym.playercontainer.registries.Containers;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Uuids;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkSectionPos;
 import net.minecraft.world.World;
 
 public class ContainerInstance<C extends AbstractContainer> {
@@ -45,9 +48,10 @@ public class ContainerInstance<C extends AbstractContainer> {
         ).apply(instance, ContainerInstance::new)
     );
 
-    public static final PacketCodec<PacketByteBuf, ContainerInstance<?>> PACKET_CODEC = PacketCodec.tuple(
+    public static final PacketCodec<PacketByteBuf, ContainerInstance<?>> PACKET_CODEC = PacketCodec.tuple( // S2C ONLY!!
         RegistryKey.createPacketCodec(Containers.REGISTRY_KEY), ContainerInstance::getContainerKey,
         Uuids.PACKET_CODEC, ContainerInstance::getID,
+        PacketCodecs.collection(HashSet::new, PacketCodecs.GAME_PROFILE), ContainerInstance::getPlayers,
         ContainerInstance::new);
     
 
@@ -55,13 +59,15 @@ public class ContainerInstance<C extends AbstractContainer> {
     private UUID ID;
     private Entity ownerEntity;
     private BlockEntity ownerBlockEntity;
+    private Set<GameProfile> playerCache = null; // TODO change getPlayers and getPlayerCount to use this if not null
 
     public ContainerInstance(C container) {
         this(container, UUID.randomUUID());
     }
 
-    public ContainerInstance(RegistryKey<AbstractContainer> containerKey, UUID id) {
+    public ContainerInstance(RegistryKey<AbstractContainer> containerKey, UUID id, Set<GameProfile> playerCache) {
         this((C)Containers.REGISTRY.get(containerKey), id); // surely it's fiiiiiine
+        this.playerCache = playerCache;
     }
 
     public ContainerInstance(C container, UUID id) {
@@ -91,17 +97,25 @@ public class ContainerInstance<C extends AbstractContainer> {
     }
 
     public Set<GameProfile> getPlayers() {
-        Set<GameProfile> containedPlayers = new HashSet<GameProfile>();
-        for (Entry<GameProfile, UUID> entry : players.entrySet()) {
-            if (entry.getValue() == this.getID()) {
-                containedPlayers.add(entry.getKey());
+        if (playerCache != null) {
+            return playerCache;
+        } else {
+            Set<GameProfile> containedPlayers = new HashSet<GameProfile>();
+            for (Entry<GameProfile, UUID> entry : players.entrySet()) {
+                if (entry.getValue() == this.getID()) {
+                    containedPlayers.add(entry.getKey());
+                }
             }
+            return containedPlayers;
         }
-        return containedPlayers;
     }
 
     public int getPlayerCount() {
-        return getPlayerCount(null);
+        if (playerCache != null) {
+            return playerCache.size();
+        } else {
+            return getPlayerCount(null);
+        }
     }
 
     public int getPlayerCount(@Nullable PlayerEntity player) {
@@ -146,7 +160,7 @@ public class ContainerInstance<C extends AbstractContainer> {
                     }
                 }).ifRight(blockEntity -> {
                     BlockPos pos = blockEntity.getPos();
-                    if (world.isPosLoaded(pos.getX(), pos.getZ())) {
+                    if (world.isChunkLoaded(ChunkSectionPos.getSectionCoord(pos.getX()), ChunkSectionPos.getSectionCoord(pos.getZ()))) {
                         recaptured.put(player, cont);
                         //cont.capture(player, true);
                     }
@@ -171,7 +185,7 @@ public class ContainerInstance<C extends AbstractContainer> {
                     }
                 }).ifRight(blockEntity -> {
                     BlockPos pos = blockEntity.getPos();
-                    if (world.isPosLoaded(pos.getX(), pos.getZ())) {
+                    if (world.isChunkLoaded(ChunkSectionPos.getSectionCoord(pos.getX()), ChunkSectionPos.getSectionCoord(pos.getZ()))) {
                         released.put(player, cont);
                         //cont.release(player, false);
                     }
@@ -233,6 +247,7 @@ public class ContainerInstance<C extends AbstractContainer> {
 
     public void destroy(PlayerManager players) {
         containers.remove(ID);
+        PlayerContainer.sendCIPtoAll(players);
         container.destroy(players, this);
     }
 

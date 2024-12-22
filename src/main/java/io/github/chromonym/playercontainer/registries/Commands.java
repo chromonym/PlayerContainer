@@ -2,6 +2,7 @@ package io.github.chromonym.playercontainer.registries;
 
 import static net.minecraft.server.command.CommandManager.*;
 
+import io.github.chromonym.playercontainer.PlayerContainer;
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.argument.EntityArgumentType;
@@ -28,6 +29,20 @@ public class Commands {
                     context.getSource().sendFeedback(() -> Text.literal("Released player "+player.getNameForScoreboard()), false);
                     return 1;
                 }))
+        ).then(
+            literal("update")
+                .executes(context -> {
+                    PlayerContainer.sendCIPtoAll(context.getSource().getServer().getPlayerManager());
+                    context.getSource().sendFeedback(() -> Text.literal("Sent container data to all online players"), false);
+                    return 1;
+                })
+        ).then(
+            literal("clean")
+                .executes(context -> {
+                    PlayerContainer.cleanContainers(context.getSource().getServer().getPlayerManager());
+                    context.getSource().sendFeedback(() -> Text.literal("Cleaned empty containers"), false);
+                    return 1;
+                })
         )));
     }
 }

@@ -15,6 +15,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.world.World;
 
 public class AbstractContainerItem<C extends AbstractContainer> extends Item {
@@ -44,6 +45,7 @@ public class AbstractContainerItem<C extends AbstractContainer> extends Item {
                         PlayerContainer.LOGGER.info("Container stack ID not yet created, adding it to the tracked list");
                         ContainerInstance<C> cont = new ContainerInstance<C>(container);
                         stack.set(ItemComponents.CONTAINER_ID, cont.getID());
+                        PlayerContainer.sendCIPtoAll(world.getServer().getPlayerManager());
                         return cont;
                     }
                 } if (!ContainerInstance.containers.containsKey(id)) {
@@ -52,6 +54,7 @@ public class AbstractContainerItem<C extends AbstractContainer> extends Item {
                     } else {
                         PlayerContainer.LOGGER.info("Container stack ID not yet loaded, adding it to the tracked list");
                         ContainerInstance<C> cont = new ContainerInstance<C>(container, id);
+                        PlayerContainer.sendCIPtoAll(world.getServer().getPlayerManager());
                         return cont;
                     }
                 } else {
@@ -89,15 +92,15 @@ public class AbstractContainerItem<C extends AbstractContainer> extends Item {
         UUID cont = stack.get(ItemComponents.CONTAINER_ID);
         if (stack.getItem() instanceof AbstractContainerItem<?> aci) {
             ContainerInstance<?> ci = aci.getOrMakeContainerInstance(stack, null, true);
-            if (ci != null) {
-                tooltip.add(Text.translatable("tooltip.playercontainer.contains"));
+            if (ci != null && ci.getPlayerCount() != 0) {
+                tooltip.add(Text.translatable("tooltip.playercontainer.contains").formatted(Formatting.GRAY));
                 for (GameProfile player : ci.getPlayers()) {
-                    tooltip.add(Text.of("- " + player.getName()));
+                    tooltip.add(Text.literal("- " + player.getName()).formatted(Formatting.GRAY));
                 }
 			}
         }
         if (cont != null && type.isAdvanced()) {
-            tooltip.add(Text.of("ID: "+cont.toString()));
+            tooltip.add(Text.literal("ID: "+cont.toString()).formatted(Formatting.DARK_GRAY));
         }
     }
 

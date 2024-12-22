@@ -1,33 +1,23 @@
 package io.github.chromonym.playercontainer;
 
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerBlockEntityEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.item.ItemGroups;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
 import java.util.HashSet;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.github.chromonym.playercontainer.registries.Items;
-import io.github.chromonym.playercontainer.registries.ItemComponents;
+import io.github.chromonym.playercontainer.registries.*;
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
 import io.github.chromonym.playercontainer.networking.ContainerInstancesPayload;
-import io.github.chromonym.playercontainer.registries.Commands;
-import io.github.chromonym.playercontainer.registries.Containers;
 
 public class PlayerContainer implements ModInitializer {
 	public static final String MOD_ID = "playercontainer";
@@ -48,54 +38,32 @@ public class PlayerContainer implements ModInitializer {
 		ItemComponents.initialize();
 		Items.initialize();
 		Containers.initialize();
+		ItemGroups.initialize();
 		Commands.intialize();
+		Events.initialize();
 
-		ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL)
-			.register((itemGroup) -> {
-				itemGroup.add(Items.basicContainer);
-				itemGroup.add(Items.debugContainer);
-				//itemGroup.add(Items.testContainer);
-			});
-		/*ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
-			ContainerInstance.checkRecaptureDecapture(world);
-		});
-		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-			ContainerInstance.checkRecaptureDecapture(handler.getPlayer().getWorld());
-		});*/
-		ServerTickEvents.END_WORLD_TICK.register(world -> {
-			ContainerInstance.checkRecaptureDecapture(world);
-			ContainerInstance.disconnectedPlayers.clear();
-		});
-		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-			sender.sendPacket(new ContainerInstancesPayload(ContainerInstance.containers, ContainerInstance.players), null);
-
-		});
-		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
-			ServerPlayerEntity player = handler.getPlayer();
-			ContainerInstance.disconnectedPlayers.add(player.getUuid());
-            if (ContainerInstance.players.keySet().contains(player.getGameProfile())) {
-                // player is in a container
-                ContainerInstance.containers.get(ContainerInstance.players.get(player.getGameProfile())).release(player, true); // temporarily release that player
-            }
-		});
-		ServerBlockEntityEvents.BLOCK_ENTITY_UNLOAD.register((blockEntity, world) -> {
-			Set<ContainerInstance<?>> toRemoveAll = new HashSet<ContainerInstance<?>>();
-			for (Entry<UUID, ContainerInstance<?>> entry : ContainerInstance.containers.entrySet()) {
-				Optional<BlockEntity> owner = entry.getValue().getOwner().right();
-				if (owner.isPresent() && owner.get().getPos() == blockEntity.getPos()) {
-                    toRemoveAll.add(entry.getValue()); // entry.getValue().releaseAll(world, true);
-				}
-			}
-			for (ContainerInstance<?> cont : toRemoveAll) {
-				cont.releaseAll(world.getServer().getPlayerManager(), true);
-			}
-		});
 	}
 
 	public static void sendCIPtoAll(PlayerManager players) {
 		for (ServerPlayerEntity player : players.getPlayerList()) {
             ServerPlayNetworking.send(player, new ContainerInstancesPayload(ContainerInstance.containers, ContainerInstance.players));
 		}
+	}
+
+	public static void cleanContainers(PlayerManager players) {
+		LOGGER.info("Cleaning containers");
+		Set<UUID> toRemove = new HashSet<UUID>();
+		for (Entry<UUID, ContainerInstance<?>> entry : ContainerInstance.containers.entrySet()) {
+			if (entry.getValue().getPlayerCount() == 0 && !ContainerInstance.playersToRecapture.values().contains(entry.getKey()) && !ContainerInstance.playersToRelease.values().contains(entry.getKey())) {
+				// if container does not contain any players and is not currently pending release or recapture
+				toRemove.add(entry.getKey());
+			}
+		}
+		for (UUID cont : toRemove) {
+			LOGGER.info("Removing "+cont.toString());
+			ContainerInstance.containers.remove(cont);
+		}
+		sendCIPtoAll(players);
 	}
 
 	public static Identifier identifier(String id) {
