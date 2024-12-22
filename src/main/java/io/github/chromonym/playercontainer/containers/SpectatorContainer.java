@@ -89,14 +89,14 @@ public class SpectatorContainer extends AbstractContainer {
                 }
             }).ifLeft(entity -> {
                 ServerPlayerEntity player = entity.getServer().getPlayerManager().getPlayer(profile.getId());
-                if (player.getWorld() != entity.getWorld()) {
-                    player.teleportTo(new TeleportTarget((ServerWorld)entity.getWorld(), entity, entity.getWorld() == player.getWorld() ? TeleportTarget.NO_OP : TeleportTarget.SEND_TRAVEL_THROUGH_PORTAL_PACKET));
-                    //player.teleport((ServerWorld)entity.getWorld(), entity.getX(), entity.getY(), entity.getZ(), entity.getYaw(), entity.getPitch());
-                }
                 oldOwner.ifRight(blockEntity -> {
                     if (player != null && player.isSpectator() && entity.canBeSpectated(player) && (blockEntity == null || isWithinBlock(player.getEyePos(), blockEntity.getPos()))) {
                         // if blockEntity -> entity (entity -> entity is alredy handled by onPlayerTick)
                         player.setCameraEntity(entity);
+                    }
+                }).ifLeft(newEntity -> {
+                    if (player.getCameraEntity() != null && player.getCameraEntity() != player) {
+                        player.setCameraEntity(newEntity);
                     }
                 });
             });
@@ -116,14 +116,17 @@ public class SpectatorContainer extends AbstractContainer {
                     // not spectating anything - restrict distance
                     restrictDistance(player, entity.getPos(), entity.getWorld());
                 } else {
+                    ServerPlayerEntity tempPlayer;
                     if (player.getWorld() != entity.getWorld()) {
-                        restrictDistance(player, entity.getPos(), entity.getWorld());
+                        tempPlayer = restrictDistance(player, entity.getPos(), entity.getWorld());
+                    } else {
+                        tempPlayer = player;
                     }
-                    if (player.getCameraEntity() != entity) {
-                        if (entity.canBeSpectated(player)) {
-                            player.setCameraEntity(entity);
+                    if (tempPlayer.getCameraEntity() != entity) {
+                        if (entity.canBeSpectated(tempPlayer)) {
+                            tempPlayer.setCameraEntity(entity);
                         } else {
-                            player.setCameraEntity(null);
+                            tempPlayer.setCameraEntity(null);
                         }
                     }
                 }
@@ -149,7 +152,7 @@ public class SpectatorContainer extends AbstractContainer {
         }
     }
 
-    public void restrictDistance(PlayerEntity player, Vec3d target, World targetWorld) {
+    public ServerPlayerEntity restrictDistance(ServerPlayerEntity player, Vec3d target, World targetWorld) {
         boolean shouldTeleport = false;
         double playerX = player.getX();
         double playerY = player.getY();
@@ -187,9 +190,10 @@ public class SpectatorContainer extends AbstractContainer {
         }
 
         if (shouldTeleport && targetWorld instanceof ServerWorld sw) {
-            player.teleportTo(new TeleportTarget(sw, new Vec3d(playerX, playerY, playerZ), Vec3d.ZERO, player.getYaw(), player.getPitch(), targetWorld == player.getWorld() ? TeleportTarget.NO_OP : TeleportTarget.SEND_TRAVEL_THROUGH_PORTAL_PACKET));
+            return (ServerPlayerEntity)player.teleportTo(new TeleportTarget(sw, new Vec3d(playerX, playerY, playerZ), Vec3d.ZERO, player.getYaw(), player.getPitch(), targetWorld == player.getWorld() ? TeleportTarget.NO_OP : TeleportTarget.SEND_TRAVEL_THROUGH_PORTAL_PACKET));
             //player.teleport(sw, playerX, playerY, playerZ, PositionFlag.VALUES, player.getYaw(), player.getPitch());
         }
+        return player;
     }
 
     public static boolean isWithinBlock(Vec3d eyePos, BlockPos blockPos) {

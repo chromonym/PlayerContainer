@@ -217,6 +217,11 @@ public class ContainerInstance<C extends AbstractContainer> {
 
     public void setOwner(Entity entity) {
         if (entity != ownerEntity) {
+            if (entity instanceof PlayerEntity pe) {
+                if (getPlayers().contains(pe.getGameProfile())) {
+                    release(pe, false);
+                }
+            }
             container.onOwnerChange(getOwner(), Either.left(entity), this);
             ownerBlockEntity = null;
             ownerEntity = entity;

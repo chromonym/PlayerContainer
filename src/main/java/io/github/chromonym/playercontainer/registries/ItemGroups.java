@@ -14,7 +14,7 @@ public class ItemGroups {
         .displayName(Text.translatable("itemGroup.playercontainer.playercontainer"))
         .entries((context, entries) -> {
             entries.add(Items.basicContainer);
-            entries.add(Items.debugContainer);
+            //entries.add(Items.debugContainer);
         })
         .build();
     

@@ -35,7 +35,7 @@ public class PlayerEntityMixin {
             for(int i = 0; i < inv.size(); ++i) {
                 ItemStack stack = inv.getStack(i);
                 if (!stack.isEmpty() && stack.getItem() instanceof AbstractContainerItem<?> containerItem) {
-                    containerItem.getOrMakeContainerInstance(stack, pe.getWorld()).setOwner(pe);
+                    containerItem.getOrMakeContainerInstance(stack, pe.getWorld()).releaseAll(pe.getWorld().getServer().getPlayerManager(), false); // release all players in container if put in an ender chest (temporarily)
                 }
             }
         }

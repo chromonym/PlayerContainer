@@ -83,8 +83,10 @@ public class PlayerContainer implements ModInitializer {
 						for(int i = 0; i < inv.size(); ++i) {
 							ItemStack stack = inv.getStack(i);
 							if (!stack.isEmpty() && stack.getItem() instanceof AbstractContainerItem<?> containerItem) {
-								if (containerItem.getOrMakeContainerInstance(stack, player.getWorld()).getID() == ci.getID())
-								found = true;
+								ContainerInstance<?> checkCont = containerItem.getOrMakeContainerInstance(stack, player.getWorld(), true);
+								if (checkCont != null && checkCont.getID() == ci.getID()) {
+									found = true;
+								}
 							}
 						}
 						if (!found) {

@@ -48,7 +48,7 @@ public class EntityMixin {
         }
     }
 
-    @Inject(method = "setRemoved(Lnet/minecraft/entity/Entity/RemovalReason;)V", at = @At("HEAD"))
+    @Inject(method = "setRemoved(Lnet/minecraft/entity/Entity$RemovalReason;)V", at = @At("HEAD"))
     public void trackContainerRemoval(RemovalReason reason, CallbackInfo ci) {
         Set<ContainerInstance<?>> toDestroy = new HashSet<ContainerInstance<?>>();
         Set<ContainerInstance<?>> toRemoveAll = new HashSet<ContainerInstance<?>>();

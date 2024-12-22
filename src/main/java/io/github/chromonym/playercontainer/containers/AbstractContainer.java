@@ -1,5 +1,6 @@
 package io.github.chromonym.playercontainer.containers;
 
+import java.util.Optional;
 import java.util.UUID;
 import java.util.Map.Entry;
 
@@ -36,6 +37,20 @@ public abstract class AbstractContainer {
     }
 
     public final boolean capture(PlayerEntity player, ContainerInstance<?> ci, boolean recapturing) {
+        Optional<Entity> thisOwner = ci.getOwner().left();
+        for (GameProfile capturedPlayer : ContainerInstance.players.keySet()) {
+            if (thisOwner.isPresent() && thisOwner.get().getUuid() == capturedPlayer.getId()) {
+                // if attempting to capture someone while you yourself are captured
+                return false;
+            }
+        }
+        for (ContainerInstance<?> cont : ContainerInstance.containers.values()) {
+            Optional<Entity> contOwner = cont.getOwner().left();
+            if (cont.getPlayerCount() > 0 && contOwner.isPresent() && contOwner.get().getUuid() == player.getUuid()) {
+                // if attempting to capture player that are themselves an owner
+                return false;
+            }
+        }
         if (ContainerInstance.players.containsKey(player.getGameProfile()) && ContainerInstance.players.get(player.getGameProfile()) != ci.getID()) {
             // player is already captured
             ContainerInstance.containers.get(ContainerInstance.players.get(player.getGameProfile())).release(player, false);
