@@ -13,10 +13,12 @@ import io.github.chromonym.playercontainer.PlayerContainer;
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.RegistryWrapper.WrapperLookup;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.dynamic.Codecs;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateManager;
 import net.minecraft.world.World;
@@ -58,12 +60,15 @@ public class ContainerPersistentState extends PersistentState {
         }
         newNbt.put("containers",nbtContainers);
 
-        NbtCompound nbtPlayers = new NbtCompound();
+        //NbtCompound nbtPlayers = new NbtCompound();
+        NbtList nbtPlayers = new NbtList();
         for (Entry<GameProfile, UUID> entry : players.entrySet()) {
             NbtCompound nbtPlayer = new NbtCompound();
-            nbtPlayer.putString("name", entry.getKey().getName());
+            //nbtPlayer.putString("name", entry.getKey().getName());
+            nbtPlayer.put("profile",Codecs.GAME_PROFILE_WITH_PROPERTIES.encodeStart(NbtOps.INSTANCE, entry.getKey()).getOrThrow());
             nbtPlayer.putUuid("container", entry.getValue());
-            nbtPlayers.put(entry.getKey().getId().toString(), nbtPlayer);
+            //nbtPlayers.put(entry.getKey().getId().toString(), nbtPlayer);
+            nbtPlayers.add(nbtPlayer);
         }
         newNbt.put("players",nbtPlayers);
 
@@ -95,13 +100,12 @@ public class ContainerPersistentState extends PersistentState {
             state.containers.put(containerID, container);
         });
 
-        NbtCompound nbtPlayers = newNbt.getCompound("players");
-        nbtPlayers.getKeys().forEach(key -> {
-            UUID playerID = UUID.fromString(key);
-            NbtCompound player = nbtPlayers.getCompound(key);
-            String playerName = player.getString("name");
+        NbtList nbtPlayers = newNbt.getList("players", NbtList.COMPOUND_TYPE);
+        nbtPlayers.forEach(nbtObj -> {
+            NbtCompound player = (NbtCompound)nbtObj;
             UUID containerID = player.getUuid("container");
-            state.players.put(new GameProfile(playerID, playerName), containerID);
+            GameProfile playerProfile = Codecs.GAME_PROFILE_WITH_PROPERTIES.decode(NbtOps.INSTANCE, player.get("profile")).getOrThrow().getFirst();
+            state.players.put(playerProfile, containerID);
         });
 
         NbtCompound nbtRecapture = newNbt.getCompound("playersToRecapture");
