@@ -13,7 +13,7 @@
             "item": "minecraft:iron_ingot"
         },
         "E": {
-            "item": "minecraft:redstone"
+            "item": "playercontainer:player_essence"
         }
     },
     "result": {

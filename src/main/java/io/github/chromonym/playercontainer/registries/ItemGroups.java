@@ -13,6 +13,7 @@ public class ItemGroups {
         .icon(() -> new ItemStack(Items.basicContainer))
         .displayName(Text.translatable("itemGroup.playercontainer.playercontainer"))
         .entries((context, entries) -> {
+            entries.add(Items.playerEssence);
             entries.add(Items.basicContainer);
             entries.add(Items.largeContainer);
             entries.add(Items.hugeContainer);

@@ -15,10 +15,12 @@ import io.github.chromonym.playercontainer.items.AbstractContainerItem;
 import io.github.chromonym.playercontainer.networking.ContainerInstancesPayload;
 import io.github.chromonym.playercontainer.networking.ContainerPersistentState;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerBlockEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.entity.ItemEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.LootableInventory;
 import net.minecraft.item.ItemStack;
@@ -43,6 +45,16 @@ public class Events {
 			ContainerInstance.checkRecaptureDecapture(world);
 			ContainerInstance.disconnectedPlayers.clear();
 		});
+        ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
+            if (entity instanceof ServerPlayerEntity player) {
+                ItemStack stack = Items.playerEssence.getDefaultStack();
+                String str = player.getNameForScoreboard();
+                stack.set(ItemComponents.PLAYER_NAME, str.substring(0, 1).toUpperCase() + str.substring(1));
+                ItemEntity itemEntity = new ItemEntity(player.getWorld(), player.getX(), player.getY(), player.getZ(), stack);
+                itemEntity.setToDefaultPickupDelay();
+                entity.getWorld().spawnEntity(itemEntity);
+            }
+        });
         ServerTickEvents.START_SERVER_TICK.register(server -> {
             if (server.getTicks() % 1200 == 0) {
                 // every one minute (for testing - increase later)

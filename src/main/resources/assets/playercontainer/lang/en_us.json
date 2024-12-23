@@ -4,6 +4,10 @@
     "item.playercontainer.huge_container": "Huge Container",
     "item.playercontainer.singularity_container": "Singularity Container",
     "item.playercontainer.debug_container": "Debug Container",
+    "item.playercontainer.player_essence": "Player Essence",
+    "item.playercontainer.player_essence.named": "%s's Player Essence",
+    "item.playercontainer.player_essence_bottle": "Bottle of Player Essence",
+    "item.playercontainer.player_essence_bottle.named": "Bottle of %s's Essence",
 
     "itemGroup.playercontainer.playercontainer": "Player Containers",
     
