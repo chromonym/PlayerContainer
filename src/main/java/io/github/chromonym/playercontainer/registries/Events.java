@@ -11,11 +11,15 @@ import java.util.UUID;
 import io.github.chromonym.playercontainer.PlayerContainer;
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
 import io.github.chromonym.playercontainer.containers.SpectatorContainer;
+import io.github.chromonym.playercontainer.items.AbstractContainerItem;
 import io.github.chromonym.playercontainer.networking.ContainerInstancesPayload;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerBlockEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.inventory.Inventory;
+import net.minecraft.inventory.LootableInventory;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 public class Events {
@@ -49,7 +53,10 @@ public class Events {
 			ContainerInstance.disconnectedPlayers.add(player.getUuid());
             if (ContainerInstance.players.keySet().contains(player.getGameProfile())) {
                 // player is in a container
-                ContainerInstance.containers.get(ContainerInstance.players.get(player.getGameProfile())).release(player, true); // temporarily release that player
+                ContainerInstance<?> ci = ContainerInstance.containers.get(ContainerInstance.players.get(player.getGameProfile())); // temporarily release that player
+                if (ci != null) {
+                    ci.release(player, true);
+                }
             }
 		});
 		ServerBlockEntityEvents.BLOCK_ENTITY_UNLOAD.register((blockEntity, world) -> {
@@ -65,6 +72,19 @@ public class Events {
 				cont.releaseAll(world.getServer().getPlayerManager(), true);
 			}
 		});
+        ServerBlockEntityEvents.BLOCK_ENTITY_LOAD.register((blockEntity, world) -> {
+            if (blockEntity instanceof Inventory inv) {
+                if (blockEntity instanceof LootableInventory linv && linv.getLootTable() != null) {
+                    return;
+                }
+                for(int i = 0; i < inv.size(); ++i) {
+                    ItemStack stack = inv.getStack(i);
+                    if (!stack.isEmpty() && stack.getItem() instanceof AbstractContainerItem<?> containerItem) {
+                        containerItem.getOrMakeContainerInstance(stack, blockEntity.getWorld()).setOwner(blockEntity);
+                    }
+                }
+            }
+        });
         ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player, origin, destination) -> {
             for (Entry<UUID, ContainerInstance<?>> entry : ContainerInstance.containers.entrySet()) {
                 if (entry.getValue().getContainer() instanceof SpectatorContainer) {

@@ -22,6 +22,7 @@ import io.github.chromonym.playercontainer.registries.*;
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
 import io.github.chromonym.playercontainer.items.AbstractContainerItem;
 import io.github.chromonym.playercontainer.networking.ContainerInstancesPayload;
+import io.github.chromonym.playercontainer.networking.ContainerPersistentState;
 
 public class PlayerContainer implements ModInitializer {
 	public static final String MOD_ID = "playercontainer";
@@ -49,6 +50,8 @@ public class PlayerContainer implements ModInitializer {
 	}
 
 	public static void sendCIPtoAll(PlayerManager players) {
+		ContainerPersistentState state = ContainerPersistentState.getServerState(players.getServer());
+		state.updateFromCI();
 		for (ServerPlayerEntity player : players.getPlayerList()) {
             ServerPlayNetworking.send(player, new ContainerInstancesPayload(ContainerInstance.containers, ContainerInstance.players));
 		}

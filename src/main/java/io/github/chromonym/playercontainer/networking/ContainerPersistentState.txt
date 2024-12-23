@@ -1,0 +1,144 @@
+package io.github.chromonym.playercontainer.networking;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.Map.Entry;
+
+import com.mojang.authlib.GameProfile;
+import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+
+import io.github.chromonym.playercontainer.PlayerContainer;
+import io.github.chromonym.playercontainer.containers.ContainerInstance;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.registry.RegistryWrapper.WrapperLookup;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.Uuids;
+import net.minecraft.util.dynamic.Codecs;
+import net.minecraft.world.PersistentState;
+import net.minecraft.world.PersistentStateManager;
+import net.minecraft.world.World;
+
+public class ContainerPersistentState extends PersistentState {
+    // i know it shouldn't really be in the /networking/ folder but shhh
+
+    public Map<GameProfile, UUID> players = new HashMap<GameProfile, UUID>(); // PLAYERS TO CONTAINERS!!
+    public Map<UUID, UUID> playersToRecapture = new HashMap<UUID, UUID>(); // players that need to be recaptured by a given container when next possible
+    public Map<UUID, UUID> playersToRelease = new HashMap<UUID, UUID>(); // players that need to be released when next possible
+    public Set<UUID> disconnectedPlayers = new HashSet<UUID>(); // players that have disconnected this tick (should be ignored in checking recap/decap)
+
+    //public static final Codec<Map<GameProfile, UUID>> PLAYERS_CODEC = Codec.unboundedMap(Codecs.GAME_PROFILE_WITH_PROPERTIES, Uuids.CODEC);
+    public static final Codec<List<Pair<GameProfile, UUID>>> PLAYERS_CODEC = Codec.pair(Codecs.GAME_PROFILE_WITH_PROPERTIES, Uuids.STRING_CODEC).listOf();
+    public static final Codec<List<Pair<UUID, UUID>>> UUID_MAP_CODEC = Codec.pair(Uuids.STRING_CODEC, Uuids.STRING_CODEC).listOf();
+    //public static final Codec<Map<UUID, UUID>> UUID_MAP_CODEC = Codec.unboundedMap(Uuids.STRING_CODEC, Uuids.CODEC); // unbounded maps need to have a string-able key
+
+    public static final Codec<ContainerPersistentState> CODEC = RecordCodecBuilder.create(
+        instance -> instance.group(
+            PLAYERS_CODEC.fieldOf("players").forGetter(ContainerPersistentState::getPlayers),
+            UUID_MAP_CODEC.fieldOf("playersToRecapture").forGetter(ContainerPersistentState::getPlayersToRecapture),
+            UUID_MAP_CODEC.fieldOf("playersToRelease").forGetter(ContainerPersistentState::getPlayersToRelease),
+            Uuids.STRING_CODEC.listOf().fieldOf("disconnectedPlayers").forGetter(ContainerPersistentState::getDisconnectedPlayers)
+        ).apply(instance, ContainerPersistentState::new));
+    
+    public ContainerPersistentState(List<Pair<GameProfile, UUID>> players, List<Pair<UUID, UUID>> playersToRecapture, List<Pair<UUID, UUID>> playersToRelease, List<UUID> disconnectedPlayers) {
+        super();
+        for (Pair<GameProfile, UUID> pair : players) {
+            this.players.put(pair.getFirst(), pair.getSecond());
+        }
+        for (Pair<UUID, UUID> pair : playersToRecapture) {
+            this.playersToRecapture.put(pair.getFirst(), pair.getSecond());
+        }
+        for (Pair<UUID, UUID> pair : playersToRelease) {
+            this.playersToRelease.put(pair.getFirst(), pair.getSecond());
+        }
+        this.disconnectedPlayers = new HashSet<UUID>(disconnectedPlayers);
+    }
+
+    public ContainerPersistentState() {
+        super();
+    }
+
+    @Override
+    public NbtCompound writeNbt(NbtCompound nbt, WrapperLookup registryLookup) {
+        this.updateFromCI();
+        DataResult<NbtElement> encoded = CODEC.encodeStart(NbtOps.INSTANCE, this);
+        nbt.put(PlayerContainer.MOD_ID, encoded.getOrThrow());
+        return nbt;
+    }
+
+    public static ContainerPersistentState createFromNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
+        NbtElement encoded = nbt.get(PlayerContainer.MOD_ID);
+        DataResult<ContainerPersistentState> state = CODEC.parse(NbtOps.INSTANCE, encoded);
+        if (state.isSuccess()) {
+            state.getOrThrow().updateToCI();
+            return state.getOrThrow();
+        }
+        return new ContainerPersistentState();
+    }
+
+    private static Type<ContainerPersistentState> type = new Type<ContainerPersistentState>(
+        ContainerPersistentState::new,
+        ContainerPersistentState::createFromNbt,
+        null);
+
+    public static ContainerPersistentState getServerState(MinecraftServer server) {
+        PersistentStateManager manager = server.getWorld(World.OVERWORLD).getPersistentStateManager();
+        ContainerPersistentState state = manager.getOrCreate(type, PlayerContainer.MOD_ID);
+        state.markDirty();
+        return state;
+    }
+
+    public void updateFromCI() {
+        this.disconnectedPlayers = new HashSet<UUID>(ContainerInstance.disconnectedPlayers);
+        this.players = new HashMap<GameProfile, UUID>(ContainerInstance.players);
+        this.playersToRecapture = new HashMap<UUID,UUID>(ContainerInstance.playersToRecapture);
+        this.playersToRelease = new HashMap<UUID,UUID>(ContainerInstance.playersToRelease);
+        this.markDirty();
+    }
+
+    public void updateToCI() {
+        ContainerInstance.disconnectedPlayers = new HashSet<UUID>(this.disconnectedPlayers);
+        ContainerInstance.players = new HashMap<GameProfile, UUID>(this.players);
+        ContainerInstance.playersToRecapture = new HashMap<UUID, UUID>(this.playersToRecapture);
+        ContainerInstance.playersToRelease = new HashMap<UUID, UUID>(this.playersToRelease);
+    }
+
+    public List<Pair<GameProfile, UUID>> getPlayers() {
+        List<Pair<GameProfile, UUID>> returnList = new ArrayList<Pair<GameProfile, UUID>>();
+        for (Entry<GameProfile, UUID> entry : players.entrySet()) {
+            returnList.add(new Pair<GameProfile, UUID>(entry.getKey(), entry.getValue()));
+        }
+        return returnList;
+    }
+
+    public List<Pair<UUID, UUID>> getPlayersToRecapture() {
+        List<Pair<UUID, UUID>> returnList = new ArrayList<Pair<UUID, UUID>>();
+        for (Entry<UUID, UUID> entry : playersToRecapture.entrySet()) {
+            returnList.add(new Pair<UUID, UUID>(entry.getKey(), entry.getValue()));
+        }
+        return returnList;
+    }
+
+    public List<Pair<UUID, UUID>> getPlayersToRelease() {
+        List<Pair<UUID, UUID>> returnList = new ArrayList<Pair<UUID, UUID>>();
+        for (Entry<UUID, UUID> entry : playersToRelease.entrySet()) {
+            returnList.add(new Pair<UUID, UUID>(entry.getKey(), entry.getValue()));
+        }
+        return returnList;
+    }
+
+    public List<UUID> getDisconnectedPlayers() {
+        return new ArrayList<UUID>(disconnectedPlayers);
+    }
+
+}

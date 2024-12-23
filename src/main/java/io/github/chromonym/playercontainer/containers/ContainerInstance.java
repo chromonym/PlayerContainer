@@ -59,7 +59,7 @@ public class ContainerInstance<C extends AbstractContainer> {
     private UUID ID;
     private Entity ownerEntity;
     private BlockEntity ownerBlockEntity;
-    private Set<GameProfile> playerCache = null; // TODO change getPlayers and getPlayerCount to use this if not null
+    private Set<GameProfile> playerCache = null;
 
     public ContainerInstance(C container) {
         this(container, UUID.randomUUID());
@@ -152,19 +152,21 @@ public class ContainerInstance<C extends AbstractContainer> {
             PlayerEntity player = world.getServer().getPlayerManager().getPlayer(entry.getKey());
             if (player != null && !disconnectedPlayers.contains(player.getUuid())) {
                 ContainerInstance<?> cont = containers.get(entry.getValue());
-                cont.getOwner().ifLeft(entity -> {
-                    if (world.getEntityById(entity.getId()) != null) {
-                        // both owner entity and player to recapture exist
-                        recaptured.put(player, cont);
-                        //cont.capture(player, true);
-                    }
-                }).ifRight(blockEntity -> {
-                    BlockPos pos = blockEntity.getPos();
-                    if (world.isChunkLoaded(ChunkSectionPos.getSectionCoord(pos.getX()), ChunkSectionPos.getSectionCoord(pos.getZ()))) {
-                        recaptured.put(player, cont);
-                        //cont.capture(player, true);
-                    }
-                });
+                if (cont != null) {
+                    cont.getOwner().ifLeft(entity -> {
+                        if (world.getEntityById(entity.getId()) != null) {
+                            // both owner entity and player to recapture exist
+                            recaptured.put(player, cont);
+                            //cont.capture(player, true);
+                        }
+                    }).ifRight(blockEntity -> {
+                        BlockPos pos = blockEntity.getPos();
+                        if (world.isChunkLoaded(ChunkSectionPos.getSectionCoord(pos.getX()), ChunkSectionPos.getSectionCoord(pos.getZ()))) {
+                            recaptured.put(player, cont);
+                            //cont.capture(player, true);
+                        }
+                    });
+                }
             }
         }
         for (Entry<PlayerEntity,ContainerInstance<?>> entry : recaptured.entrySet()) {
@@ -177,19 +179,21 @@ public class ContainerInstance<C extends AbstractContainer> {
             PlayerEntity player = world.getServer().getPlayerManager().getPlayer(entry.getKey());
             if (player != null) {
                 ContainerInstance<?> cont = containers.get(entry.getValue());
-                cont.getOwner().ifLeft(entity -> {
-                    if (world.getEntityById(entity.getId()) != null) {
-                        // both owner entity and player to recapture exist
-                        released.put(player, cont);
-                        //cont.release(player, false);
-                    }
-                }).ifRight(blockEntity -> {
-                    BlockPos pos = blockEntity.getPos();
-                    if (world.isChunkLoaded(ChunkSectionPos.getSectionCoord(pos.getX()), ChunkSectionPos.getSectionCoord(pos.getZ()))) {
-                        released.put(player, cont);
-                        //cont.release(player, false);
-                    }
-                });
+                if (cont != null) {
+                    cont.getOwner().ifLeft(entity -> {
+                        if (world.getEntityById(entity.getId()) != null) {
+                            // both owner entity and player to recapture exist
+                            released.put(player, cont);
+                            //cont.release(player, false);
+                        }
+                    }).ifRight(blockEntity -> {
+                        BlockPos pos = blockEntity.getPos();
+                        if (world.isChunkLoaded(ChunkSectionPos.getSectionCoord(pos.getX()), ChunkSectionPos.getSectionCoord(pos.getZ()))) {
+                            released.put(player, cont);
+                            //cont.release(player, false);
+                        }
+                    });
+                }
             }
         }
         for (Entry<PlayerEntity,ContainerInstance<?>> entry : released.entrySet()) {
@@ -204,7 +208,7 @@ public class ContainerInstance<C extends AbstractContainer> {
                 UUID contID = players.get(profile);
                 if (contID != null && containers.containsKey(contID)) {
                     ContainerInstance<?> ci = containers.get(contID);
-                    ci.release(player, false);
+                    if (ci != null) { ci.release(player, false); }
                 }
             }
         }

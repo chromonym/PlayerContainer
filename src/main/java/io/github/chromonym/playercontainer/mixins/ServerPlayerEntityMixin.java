@@ -20,7 +20,7 @@ public class ServerPlayerEntityMixin {
             UUID containerID = ContainerInstance.players.get(thisPE.getGameProfile());
             if (ContainerInstance.containers.containsKey(containerID)) {
                 ContainerInstance<?> cont = ContainerInstance.containers.get(containerID);
-                cont.onPlayerTick(thisPE);
+                if (cont != null) {cont.onPlayerTick(thisPE);}
             }
         }
     }
