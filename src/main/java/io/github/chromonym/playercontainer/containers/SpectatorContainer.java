@@ -42,10 +42,12 @@ public class SpectatorContainer extends AbstractContainer {
                     //serverPlayer.teleport((ServerWorld)entity.getWorld(), entity.getX(), entity.getY(), entity.getZ(), entity.getYaw(), entity.getPitch());
                 }
             }).ifRight(blockEntity -> {
-                serverPlayer.setCameraEntity(null);
-                player.teleportTo(new TeleportTarget((ServerWorld)blockEntity.getWorld(), blockEntity.getPos().toCenterPos().add(0, -player.getEyeHeight(player.getPose()), 0), Vec3d.ZERO, player.getYaw(), player.getPitch(), blockEntity.getWorld() == player.getWorld() ? TeleportTarget.NO_OP : TeleportTarget.SEND_TRAVEL_THROUGH_PORTAL_PACKET));
-                //Vec3d blockPos = blockEntity.getPos().toCenterPos();
-                //serverPlayer.teleport((ServerWorld)blockEntity.getWorld(), blockPos.getX(), blockPos.getY()-1, blockPos.getZ(), player.getYaw(), player.getPitch());
+                if (blockEntity != null) {
+                    serverPlayer.setCameraEntity(null);
+                    player.teleportTo(new TeleportTarget((ServerWorld)blockEntity.getWorld(), blockEntity.getPos().toCenterPos().add(0, -player.getEyeHeight(player.getPose()), 0), Vec3d.ZERO, player.getYaw(), player.getPitch(), blockEntity.getWorld() == player.getWorld() ? TeleportTarget.NO_OP : TeleportTarget.SEND_TRAVEL_THROUGH_PORTAL_PACKET));
+                    //Vec3d blockPos = blockEntity.getPos().toCenterPos();
+                    //serverPlayer.teleport((ServerWorld)blockEntity.getWorld(), blockPos.getX(), blockPos.getY()-1, blockPos.getZ(), player.getYaw(), player.getPitch());
+                }
             });
         }
     }
@@ -131,12 +133,14 @@ public class SpectatorContainer extends AbstractContainer {
                     }
                 }
             }).ifRight(blockEntity -> {
-                if (player.getCameraEntity() != null && player.getCameraEntity() != player) {
-                    player.setCameraEntity(null);
-                    player.teleportTo(new TeleportTarget((ServerWorld)blockEntity.getWorld(), blockEntity.getPos().toCenterPos().add(0, -player.getEyeHeight(player.getPose()), 0), Vec3d.ZERO, player.getYaw(), player.getPitch(), blockEntity.getWorld() == player.getWorld() ? TeleportTarget.NO_OP : TeleportTarget.SEND_TRAVEL_THROUGH_PORTAL_PACKET));
-                    //player.teleport((ServerWorld)blockEntity.getWorld(), blockPos.getX(), blockPos.getY()-player.getEyeHeight(player.getPose()), blockPos.getZ(), player.getYaw(), player.getPitch());
+                if (blockEntity != null) {
+                    if (player.getCameraEntity() != null && player.getCameraEntity() != player) {
+                        player.setCameraEntity(null);
+                        player.teleportTo(new TeleportTarget((ServerWorld)blockEntity.getWorld(), blockEntity.getPos().toCenterPos().add(0, -player.getEyeHeight(player.getPose()), 0), Vec3d.ZERO, player.getYaw(), player.getPitch(), blockEntity.getWorld() == player.getWorld() ? TeleportTarget.NO_OP : TeleportTarget.SEND_TRAVEL_THROUGH_PORTAL_PACKET));
+                        //player.teleport((ServerWorld)blockEntity.getWorld(), blockPos.getX(), blockPos.getY()-player.getEyeHeight(player.getPose()), blockPos.getZ(), player.getYaw(), player.getPitch());
+                    }
+                    restrictDistance(player, blockEntity.getPos().toCenterPos(), blockEntity.getWorld());
                 }
-                restrictDistance(player, blockEntity.getPos().toCenterPos(), blockEntity.getWorld());
             });
             /*ci.getOwner().ifLeft(entity -> {
                 if (entity.canBeSpectated(player)) { // will return true *most* of the time (not if owner is in spectator themselves, etc)

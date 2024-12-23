@@ -28,6 +28,7 @@ import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Uuids;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkSectionPos;
@@ -154,16 +155,18 @@ public class ContainerInstance<C extends AbstractContainer> {
                 ContainerInstance<?> cont = containers.get(entry.getValue());
                 if (cont != null) {
                     cont.getOwner().ifLeft(entity -> {
-                        if (world.getEntityById(entity.getId()) != null) {
+                        if (((ServerWorld)world).getEntity(entity.getUuid()) != null) {
                             // both owner entity and player to recapture exist
                             recaptured.put(player, cont);
                             //cont.capture(player, true);
                         }
                     }).ifRight(blockEntity -> {
-                        BlockPos pos = blockEntity.getPos();
-                        if (world.isChunkLoaded(ChunkSectionPos.getSectionCoord(pos.getX()), ChunkSectionPos.getSectionCoord(pos.getZ()))) {
-                            recaptured.put(player, cont);
-                            //cont.capture(player, true);
+                        if (blockEntity != null) {
+                            BlockPos pos = blockEntity.getPos();
+                            if (world.isChunkLoaded(ChunkSectionPos.getSectionCoord(pos.getX()), ChunkSectionPos.getSectionCoord(pos.getZ()))) {
+                                recaptured.put(player, cont);
+                                //cont.capture(player, true);
+                            }
                         }
                     });
                 }
@@ -187,10 +190,12 @@ public class ContainerInstance<C extends AbstractContainer> {
                             //cont.release(player, false);
                         }
                     }).ifRight(blockEntity -> {
-                        BlockPos pos = blockEntity.getPos();
-                        if (world.isChunkLoaded(ChunkSectionPos.getSectionCoord(pos.getX()), ChunkSectionPos.getSectionCoord(pos.getZ()))) {
-                            released.put(player, cont);
-                            //cont.release(player, false);
+                        if (blockEntity != null) {
+                            BlockPos pos = blockEntity.getPos();
+                            if (world.isChunkLoaded(ChunkSectionPos.getSectionCoord(pos.getX()), ChunkSectionPos.getSectionCoord(pos.getZ()))) {
+                                released.put(player, cont);
+                                //cont.release(player, false);
+                            }
                         }
                     });
                 }
@@ -209,6 +214,8 @@ public class ContainerInstance<C extends AbstractContainer> {
                 if (contID != null && containers.containsKey(contID)) {
                     ContainerInstance<?> ci = containers.get(contID);
                     if (ci != null) { ci.release(player, false); }
+                } else {
+                    PlayerContainer.LOGGER.warn("COULD NOT RELEASE PLAYER");
                 }
             }
         }

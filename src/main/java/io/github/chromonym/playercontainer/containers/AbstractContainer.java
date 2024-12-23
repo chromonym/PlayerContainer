@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Map.Entry;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.util.Either;
@@ -40,21 +41,20 @@ public abstract class AbstractContainer {
     public final boolean capture(PlayerEntity player, ContainerInstance<?> ci, boolean recapturing) {
         Optional<Entity> thisOwner = ci.getOwner().left();
         GameProfile toRemove = null;
-        UUID reAdd = null;
-        for (GameProfile prof : ContainerInstance.players.keySet()) {
-            if (prof.getId() == player.getUuid()) { // hopefully this should deal with people changing their username??? hopefully(tm)
-                reAdd = ContainerInstance.players.get(prof);
-                toRemove = prof;
+        for (Entry<GameProfile,UUID> prof : ContainerInstance.players.entrySet()) {
+            if (prof.getKey().getId() == player.getUuid() && prof.getKey().getName() != player.getGameProfile().getName() && prof.getValue() == ci.getID()) { // hopefully this should deal with people changing their username??? hopefully(tm)
+                toRemove = prof.getKey();
                 break;
             }
         }
-        if (reAdd != null && toRemove != null) {
+        if (toRemove != null) {
             ContainerInstance.players.remove(toRemove);
-            ContainerInstance.players.put(player.getGameProfile(), reAdd);
+            ContainerInstance.players.put(player.getGameProfile(), ci.getID());
         }
         if (recapturing) {
             onTempRecapture(player, ci);
             if (!player.getWorld().isClient()) {
+                ContainerInstance.players.put(player.getGameProfile(), ci.getID());
                 PlayerContainer.sendCIPtoAll(player.getServer().getPlayerManager());
             }
             return true;

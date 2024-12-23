@@ -13,8 +13,10 @@ import io.github.chromonym.playercontainer.containers.ContainerInstance;
 import io.github.chromonym.playercontainer.containers.SpectatorContainer;
 import io.github.chromonym.playercontainer.items.AbstractContainerItem;
 import io.github.chromonym.playercontainer.networking.ContainerInstancesPayload;
+import io.github.chromonym.playercontainer.networking.ContainerPersistentState;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerBlockEntityEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.inventory.Inventory;
@@ -31,6 +33,12 @@ public class Events {
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 			ContainerInstance.checkRecaptureDecapture(handler.getPlayer().getWorld());
 		});*/
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            ContainerPersistentState.getServerState(server).updateToCI(); // copy the saved containerinstances to the server's CI
+        });
+        ServerLifecycleEvents.BEFORE_SAVE.register((server, flush, force) -> {
+            ContainerPersistentState.getServerState(server).updateFromCI(); // copy the server's CI to the saved containerinstances
+        });
 		ServerTickEvents.END_WORLD_TICK.register(world -> {
 			ContainerInstance.checkRecaptureDecapture(world);
 			ContainerInstance.disconnectedPlayers.clear();
