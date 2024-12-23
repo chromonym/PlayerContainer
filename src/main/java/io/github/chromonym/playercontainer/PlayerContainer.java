@@ -80,6 +80,12 @@ public class PlayerContainer implements ModInitializer {
 						PlayerInventory inv = player.getInventory();
 						// owning player exists and is online
 						boolean found = false;
+						if (player.currentScreenHandler != null) {
+							ItemStack stack = player.currentScreenHandler.getCursorStack();
+							if (!stack.isEmpty() && stack.getItem() instanceof AbstractContainerItem<?>) {
+								found = true; // pwease don't destroy it :(
+							}
+						}
 						for(int i = 0; i < inv.size(); ++i) {
 							ItemStack stack = inv.getStack(i);
 							if (!stack.isEmpty() && stack.getItem() instanceof AbstractContainerItem<?> containerItem) {

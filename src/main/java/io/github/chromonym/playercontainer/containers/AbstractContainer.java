@@ -74,7 +74,8 @@ public abstract class AbstractContainer {
         }
         if (ContainerInstance.players.containsKey(player.getGameProfile()) && ContainerInstance.players.get(player.getGameProfile()) != ci.getID() && !recapturing) {
             // player is already captured
-            ContainerInstance.containers.get(ContainerInstance.players.get(player.getGameProfile())).release(player, false);
+            //ContainerInstance.containers.get(ContainerInstance.players.get(player.getGameProfile())).release(player, false);
+            return false;
         }
         if (ContainerInstance.playersToRecapture.containsKey(player.getUuid()) && ContainerInstance.playersToRecapture.get(player.getUuid()) != ci.getID()) {
             // player is already captured but offline
