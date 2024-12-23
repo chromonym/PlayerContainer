@@ -1,0 +1,23 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        " S ",
+        "IEI",
+        " S "
+    ],
+    "key": {
+        "S": {
+            "item": "minecraft:shulker_shell"
+        },
+        "I": {
+            "item": "minecraft:iron_ingot"
+        },
+        "E": {
+            "item": "minecraft:redstone"
+        }
+    },
+    "result": {
+        "id": "playercontainer:basic_container",
+        "count": 1
+    }
+}

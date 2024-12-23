@@ -1,8 +1,9 @@
 package io.github.chromonym.playercontainer.containers;
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
-import java.util.Map.Entry;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.util.Either;
@@ -38,6 +39,26 @@ public abstract class AbstractContainer {
 
     public final boolean capture(PlayerEntity player, ContainerInstance<?> ci, boolean recapturing) {
         Optional<Entity> thisOwner = ci.getOwner().left();
+        GameProfile toRemove = null;
+        UUID reAdd = null;
+        for (GameProfile prof : ContainerInstance.players.keySet()) {
+            if (prof.getId() == player.getUuid()) { // hopefully this should deal with people changing their username??? hopefully(tm)
+                reAdd = ContainerInstance.players.get(prof);
+                toRemove = prof;
+                break;
+            }
+        }
+        if (reAdd != null && toRemove != null) {
+            ContainerInstance.players.remove(toRemove);
+            ContainerInstance.players.put(player.getGameProfile(), reAdd);
+        }
+        if (recapturing) {
+            onTempRecapture(player, ci);
+            if (!player.getWorld().isClient()) {
+                PlayerContainer.sendCIPtoAll(player.getServer().getPlayerManager());
+            }
+            return true;
+        }
         for (GameProfile capturedPlayer : ContainerInstance.players.keySet()) {
             if (thisOwner.isPresent() && thisOwner.get().getUuid() == capturedPlayer.getId()) {
                 // if attempting to capture someone while you yourself are captured
@@ -51,7 +72,7 @@ public abstract class AbstractContainer {
                 return false;
             }
         }
-        if (ContainerInstance.players.containsKey(player.getGameProfile()) && ContainerInstance.players.get(player.getGameProfile()) != ci.getID()) {
+        if (ContainerInstance.players.containsKey(player.getGameProfile()) && ContainerInstance.players.get(player.getGameProfile()) != ci.getID() && !recapturing) {
             // player is already captured
             ContainerInstance.containers.get(ContainerInstance.players.get(player.getGameProfile())).release(player, false);
         }
@@ -59,9 +80,6 @@ public abstract class AbstractContainer {
             // player is already captured but offline
             PlayerContainer.LOGGER.warn("Unsuccessfully attempted to capture a player who is offline *and* already caught");
             return false;
-        }
-        if (recapturing) {
-            onTempRecapture(player, ci);
         }
         if (ci.getOwner().left().isPresent() && ci.getOwner().left().get().getUuid() == player.getUuid()) {
             PlayerContainer.LOGGER.warn("Player "+player.getNameForScoreboard()+" attempted capturing themselves!");
@@ -74,18 +92,9 @@ public abstract class AbstractContainer {
                 return false;
             }
         }
-        if (ci.getPlayerCount(player) < this.maxPlayers) {
-            if (!recapturing) {
-                ContainerInstance.players.put(player.getGameProfile(), ci.getID());
-                onCapture(player, ci);
-            } else {
-                for (GameProfile prof : ContainerInstance.players.keySet()) {
-                    if (prof.getId() == player.getUuid()) { // hopefully this should deal with people changing their username??? hopefully(tm)
-                        UUID reAdd = ContainerInstance.players.remove(prof);
-                        ContainerInstance.players.put(player.getGameProfile(), reAdd);
-                    }
-                }
-            }
+        if (ci.getPlayerCount(player) < this.maxPlayers || recapturing) {
+            ContainerInstance.players.put(player.getGameProfile(), ci.getID());
+            onCapture(player, ci);
             if (!player.getWorld().isClient()) {
                 PlayerContainer.sendCIPtoAll(player.getServer().getPlayerManager());
             }
@@ -113,16 +122,21 @@ public abstract class AbstractContainer {
                     PlayerContainer.sendCIPtoAll(player.getServer().getPlayerManager());
                 }
             }
-        } else if (players.getPlayer(profile.getId()) == null) { // otherwise, if the player is *already* offline,
+        } else if (players.getPlayer(profile.getId()) == null) { // otherwise, if the player is *already* offline, DO NOTHING
             // ContainerInstance.playersToRecapture.remove(profile.getId()); // remove them from the recapture list
-            ContainerInstance.playersToRelease.put(profile.getId(), ci.getID()); // add them to the to release list
-            PlayerContainer.LOGGER.warn("Attempted to release player who is offline!"); // (this shouldn't happen because they shouldn't be captured if offline)
+            //ContainerInstance.playersToRelease.put(profile.getId(), ci.getID()); // add them to the to release list
+            //PlayerContainer.LOGGER.warn("Attempted to release player who is offline!"); // (this shouldn't happen because they shouldn't be captured if offline)
+            return;
         } else if (ContainerInstance.players.get(profile) == ci.getID()) { // otherwise if the player is online and captured
-            ContainerInstance.playersToRecapture.remove(profile.getId());
-            onRelease(players.getPlayer(profile.getId()), ci); // run onRelease
-            ContainerInstance.players.remove(profile); // remove them from the captured players
-            if (!player.getWorld().isClient()) {
-                PlayerContainer.sendCIPtoAll(player.getServer().getPlayerManager());
+            if (ContainerInstance.playersToRecapture.containsKey(profile.getId())) {
+                // if they haven't been recaptured yet, do that first!
+                ContainerInstance.playersToRelease.put(profile.getId(), ci.getID());
+            } else {
+                onRelease(players.getPlayer(profile.getId()), ci); // run onRelease
+                ContainerInstance.players.remove(profile); // remove them from the captured players
+                if (!player.getWorld().isClient()) {
+                    PlayerContainer.sendCIPtoAll(player.getServer().getPlayerManager());
+                }
             }
         }
     }
@@ -132,16 +146,21 @@ public abstract class AbstractContainer {
     }
 
     public final void releaseAll(PlayerManager players, ContainerInstance<?> ci, boolean recaptureLater) {
+        Set<GameProfile> toRelease = new HashSet<GameProfile>();
         for (GameProfile profile : ContainerInstance.players.keySet()) {
+            toRelease.add(profile);
+            //release(profile, players, ci, recaptureLater);
+        }
+        for (GameProfile profile : toRelease) {
             release(profile, players, ci, recaptureLater);
         }
-        if (!recaptureLater) {
+        /*if (!recaptureLater) {
             for (Entry<UUID,UUID> entry : ContainerInstance.playersToRecapture.entrySet()) {
                 if (entry.getValue() == ci.getID()) {
                     ContainerInstance.playersToRelease.put(entry.getKey(), entry.getValue());
                 }
             }
-        }
+        }*/
     }
 
     public final void destroy(PlayerManager players, ContainerInstance<?> ci) {

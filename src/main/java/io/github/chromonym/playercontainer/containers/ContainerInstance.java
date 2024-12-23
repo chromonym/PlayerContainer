@@ -193,8 +193,8 @@ public class ContainerInstance<C extends AbstractContainer> {
             }
         }
         for (Entry<PlayerEntity,ContainerInstance<?>> entry : released.entrySet()) {
-            entry.getValue().release(entry.getKey(), false);
             ContainerInstance.playersToRelease.remove(entry.getKey().getUuid());
+            entry.getValue().release(entry.getKey(), false);
         }
     }
 

@@ -37,6 +37,8 @@ public class Events {
                 PlayerContainer.cleanContainers(server.getPlayerManager());
             }
             PlayerContainer.destroyMissingContainers(server.getPlayerManager());
+            /*PlayerContainer.LOGGER.info(Integer.toString(ContainerInstance.players.size())+", "+Integer.toString(ContainerInstance.playersToRecapture.size())
+            +", "+Integer.toString(ContainerInstance.playersToRelease.size())+", "+Integer.toString(ContainerInstance.disconnectedPlayers.size()));*/
         });
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 			sender.sendPacket(new ContainerInstancesPayload(ContainerInstance.containers, ContainerInstance.players), null);

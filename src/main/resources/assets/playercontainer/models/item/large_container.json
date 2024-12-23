@@ -1,0 +1,20 @@
+{
+    "parent": "item/generated",
+    "textures": {
+        "layer0": "playercontainer:item/large_container_empty"
+    },
+    "overrides": [
+        {
+            "predicate": {
+                "captured": 0.1
+            },
+            "model": "playercontainer:item/large_container_filling"
+        },
+        {
+            "predicate": {
+                "captured": 0.9
+            },
+            "model": "playercontainer:item/large_container_full"
+        }
+    ]
+}

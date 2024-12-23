@@ -1,0 +1,23 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        " E ",
+        "ICI",
+        " E "
+    ],
+    "key": {
+        "C": {
+            "item": "playercontainer:large_container"
+        },
+        "I": {
+            "item": "minecraft:iron_ingot"
+        },
+        "E": {
+            "item": "minecraft:redstone"
+        }
+    },
+    "result": {
+        "id": "playercontainer:huge_container",
+        "count": 1
+    }
+}

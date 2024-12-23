@@ -1,5 +1,8 @@
 {
     "item.playercontainer.basic_container": "Basic Container",
+    "item.playercontainer.large_container": "Large Container",
+    "item.playercontainer.huge_container": "Huge Container",
+    "item.playercontainer.singularity_container": "Singularity Container",
     "item.playercontainer.debug_container": "Debug Container",
 
     "itemGroup.playercontainer.playercontainer": "Player Containers",

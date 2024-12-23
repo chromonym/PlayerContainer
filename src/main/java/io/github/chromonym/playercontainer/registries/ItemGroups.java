@@ -14,7 +14,10 @@ public class ItemGroups {
         .displayName(Text.translatable("itemGroup.playercontainer.playercontainer"))
         .entries((context, entries) -> {
             entries.add(Items.basicContainer);
-            //entries.add(Items.debugContainer);
+            entries.add(Items.largeContainer);
+            entries.add(Items.hugeContainer);
+            entries.add(Items.singularityContainer);
+            entries.add(Items.debugContainer); // TODO remove in final
         })
         .build();
     

@@ -9,6 +9,7 @@ import io.github.chromonym.playercontainer.PlayerContainer;
 import io.github.chromonym.playercontainer.containers.AbstractContainer;
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
 import io.github.chromonym.playercontainer.registries.ItemComponents;
+import io.github.chromonym.playercontainer.registries.Items;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.item.Item;
@@ -102,6 +103,11 @@ public class AbstractContainerItem<C extends AbstractContainer> extends Item {
         if (cont != null && type.isAdvanced()) {
             tooltip.add(Text.literal("ID: "+cont.toString()).formatted(Formatting.DARK_GRAY));
         }
+    }
+
+    @Override
+    public boolean hasGlint(ItemStack stack) {
+        return stack.isOf(Items.debugContainer) || super.hasGlint(stack);
     }
 
 }

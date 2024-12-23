@@ -76,7 +76,7 @@ public class PlayerContainer implements ModInitializer {
 			ci.getOwner().ifLeft(entity -> {
 				if (entity instanceof PlayerEntity owner) {
 					ServerPlayerEntity player = players.getPlayer(owner.getUuid());
-					if (player != null && player.isInCreativeMode()) {
+					if (player != null) {
 						PlayerInventory inv = player.getInventory();
 						// owning player exists and is online
 						boolean found = false;

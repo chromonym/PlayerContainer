@@ -14,6 +14,9 @@ public class Items {
 
     public static final SimpleContainerItem<LoggingContainer> debugContainer = register(new SimpleContainerItem<LoggingContainer>(Containers.LOGGING_CONTAINER, new Item.Settings().rarity(Rarity.EPIC)), "debug_container");
     public static final SimpleContainerItem<SpectatorContainer> basicContainer = register(new SimpleContainerItem<SpectatorContainer>(Containers.SPECTATOR_CONTAINER, new Item.Settings()), "basic_container");
+    public static final SimpleContainerItem<SpectatorContainer> largeContainer = register(new SimpleContainerItem<SpectatorContainer>(Containers.LARGE_SPECTATOR_CONTAINER, new Item.Settings()), "large_container");
+    public static final SimpleContainerItem<SpectatorContainer> hugeContainer = register(new SimpleContainerItem<SpectatorContainer>(Containers.HUGE_SPECTATOR_CONTAINER, new Item.Settings()), "huge_container");
+    public static final SimpleContainerItem<SpectatorContainer> singularityContainer = register(new SimpleContainerItem<SpectatorContainer>(Containers.INFINITE_SPECTATOR_CONTAINER, new Item.Settings().rarity(Rarity.EPIC)), "singularity_container");
 
     public static <I extends Item> I register(I item, String id) {
         Identifier itemID = PlayerContainer.identifier(id);

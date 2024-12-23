@@ -13,6 +13,7 @@ import net.minecraft.util.Identifier;
 public class PlayerContainerClient implements ClientModInitializer {
 
 	public static final ClampedModelPredicateProvider captureCountProvider = (itemStack, clientWorld, livingEntity, seed) -> {
+		// returns a float representing the percentage of its maximum size filled
 		if (itemStack.getItem() instanceof AbstractContainerItem aci) {
 			ContainerInstance<?> ci = aci.getOrMakeContainerInstance(itemStack, clientWorld, true);
 			if (ci != null) {
@@ -21,6 +22,19 @@ public class PlayerContainerClient implements ClientModInitializer {
 				}
 				float out = ((float)ci.getPlayerCount())/((float)ci.getMaxPlayerCount());
 				return out;
+			}
+		}
+		return 0.0F;
+	};
+
+	public static final ClampedModelPredicateProvider infiniteCaptureCountProvider = (itemStack, clientWorld, livingEntity, seed) -> {
+		// returns 0 if it contains no players, 1 if it contains any
+		if (itemStack.getItem() instanceof AbstractContainerItem aci) {
+			ContainerInstance<?> ci = aci.getOrMakeContainerInstance(itemStack, clientWorld, true);
+			if (ci != null) {
+				if (ci.getPlayerCount() > 0) {
+					return 1.0F;
+				}
 			}
 		}
 		return 0.0F;
@@ -45,5 +59,8 @@ public class PlayerContainerClient implements ClientModInitializer {
 			});
 		});
 		ModelPredicateProviderRegistry.register(Items.basicContainer, Identifier.ofVanilla("captured"), captureCountProvider);
+		ModelPredicateProviderRegistry.register(Items.largeContainer, Identifier.ofVanilla("captured"), captureCountProvider);
+		ModelPredicateProviderRegistry.register(Items.hugeContainer, Identifier.ofVanilla("captured"), captureCountProvider);
+		ModelPredicateProviderRegistry.register(Items.singularityContainer, Identifier.ofVanilla("captured"), infiniteCaptureCountProvider);
 	}
 }
