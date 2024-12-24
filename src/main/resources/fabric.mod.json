@@ -2,8 +2,8 @@
 	"schemaVersion": 1,
 	"id": "playercontainer",
 	"version": "${version}",
-	"name": "PlayerContainer",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"name": "Player Containers",
+	"description": "A (work-in-progress) mod that lets you store other players in items!",
 	"authors": [
 		"Chromonym",
 		"Swizik"
@@ -12,7 +12,7 @@
 		"homepage": "https://fabricmc.net/",
 		"sources": "https://github.com/chromonym/PlayerContainer"
 	},
-	"license": "CC0-1.0",
+	"license": "BSD-3-Clause",
 	"icon": "assets/playercontainer/icon.png",
 	"environment": "*",
 	"entrypoints": {
@@ -35,8 +35,5 @@
 		"minecraft": "~1.21.1",
 		"java": ">=21",
 		"fabric-api": "*"
-	},
-	"suggests": {
-		"another-mod": "*"
 	}
 }
