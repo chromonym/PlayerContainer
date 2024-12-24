@@ -20,7 +20,7 @@ public class PlayerContainerClient implements ClientModInitializer {
 				if (ci.getMaxPlayerCount() == 0) {
 					return 0.0F;
 				}
-				float out = ((float)ci.getPlayerCount())/((float)ci.getMaxPlayerCount());
+				float out = ((float)ci.getPlayerCount(true))/((float)ci.getMaxPlayerCount());
 				return out;
 			}
 		}
@@ -32,7 +32,7 @@ public class PlayerContainerClient implements ClientModInitializer {
 		if (itemStack.getItem() instanceof AbstractContainerItem aci) {
 			ContainerInstance<?> ci = aci.getOrMakeContainerInstance(itemStack, clientWorld, true);
 			if (ci != null) {
-				if (ci.getPlayerCount() > 0) {
+				if (ci.getPlayerCount(true) > 0) {
 					return 1.0F;
 				}
 			}

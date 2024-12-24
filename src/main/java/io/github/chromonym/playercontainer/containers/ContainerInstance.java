@@ -2,6 +2,7 @@ package io.github.chromonym.playercontainer.containers;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -30,6 +31,7 @@ import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Uuids;
+import net.minecraft.util.dynamic.Codecs;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkSectionPos;
 import net.minecraft.world.World;
@@ -45,14 +47,15 @@ public class ContainerInstance<C extends AbstractContainer> {
     public static final Codec<ContainerInstance<?>> CODEC = RecordCodecBuilder.create(
         instance -> instance.group(
             Containers.REGISTRY.getCodec().fieldOf("container").forGetter(ContainerInstance::getContainer),
-            Uuids.CODEC.fieldOf("uuid").forGetter(ContainerInstance::getID)
+            Uuids.CODEC.fieldOf("uuid").forGetter(ContainerInstance::getID),
+            Codecs.GAME_PROFILE_WITH_PROPERTIES.listOf().fieldOf("players").forGetter(ContainerInstance::getPlayersForCodec)
         ).apply(instance, ContainerInstance::new)
     );
 
     public static final PacketCodec<PacketByteBuf, ContainerInstance<?>> PACKET_CODEC = PacketCodec.tuple( // S2C ONLY!!
         RegistryKey.createPacketCodec(Containers.REGISTRY_KEY), ContainerInstance::getContainerKey,
         Uuids.PACKET_CODEC, ContainerInstance::getID,
-        PacketCodecs.collection(HashSet::new, PacketCodecs.GAME_PROFILE), ContainerInstance::getPlayers,
+        PacketCodecs.collection(HashSet::new, PacketCodecs.GAME_PROFILE), ContainerInstance::getCachedPlayers,
         ContainerInstance::new);
     
 
@@ -69,6 +72,11 @@ public class ContainerInstance<C extends AbstractContainer> {
     public ContainerInstance(RegistryKey<AbstractContainer> containerKey, UUID id, Set<GameProfile> playerCache) {
         this((C)Containers.REGISTRY.get(containerKey), id); // surely it's fiiiiiine
         this.playerCache = playerCache;
+    }
+
+    public ContainerInstance(C container, UUID id, List<GameProfile> players) {
+        this(container, id);
+        this.playerCache = new HashSet<GameProfile>(players);
     }
 
     public ContainerInstance(C container, UUID id) {
@@ -98,7 +106,19 @@ public class ContainerInstance<C extends AbstractContainer> {
     }
 
     public Set<GameProfile> getPlayers() {
-        if (playerCache != null) {
+        return getPlayers(false);
+    }
+
+    public List<GameProfile> getPlayersForCodec() {
+        return List.copyOf(getPlayers());
+    }
+
+    public Set<GameProfile> getCachedPlayers() {
+        return getPlayers(true);
+    }
+
+    public Set<GameProfile> getPlayers(boolean useCache) {
+        if (playerCache != null && useCache) {
             return playerCache;
         } else {
             Set<GameProfile> containedPlayers = new HashSet<GameProfile>();
@@ -107,12 +127,17 @@ public class ContainerInstance<C extends AbstractContainer> {
                     containedPlayers.add(entry.getKey());
                 }
             }
+            this.playerCache = containedPlayers;
             return containedPlayers;
         }
     }
 
     public int getPlayerCount() {
-        if (playerCache != null) {
+        return getPlayerCount(false);
+    }
+
+    public int getPlayerCount(boolean useCache) {
+        if (playerCache != null && useCache) {
             return playerCache.size();
         } else {
             return getPlayerCount(null);

@@ -93,9 +93,9 @@ public class AbstractContainerItem<C extends AbstractContainer> extends Item {
         UUID cont = stack.get(ItemComponents.CONTAINER_ID);
         if (stack.getItem() instanceof AbstractContainerItem<?> aci) {
             ContainerInstance<?> ci = aci.getOrMakeContainerInstance(stack, null, true);
-            if (ci != null && ci.getPlayerCount() != 0) {
+            if (ci != null && ci.getPlayerCount(true) != 0) {
                 tooltip.add(Text.translatable("tooltip.playercontainer.contains").formatted(Formatting.GRAY));
-                for (GameProfile player : ci.getPlayers()) {
+                for (GameProfile player : ci.getPlayers(true)) {
                     tooltip.add(Text.literal("- " + player.getName()).formatted(Formatting.GRAY));
                 }
 			}
