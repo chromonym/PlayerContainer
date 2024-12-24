@@ -45,17 +45,19 @@ public class PlayerContainerClient implements ClientModInitializer {
 		// This entrypoint is suitable for setting up client-specific logic, such as rendering.
 		ClientPlayNetworking.registerGlobalReceiver(ContainerInstancesPayload.ID, (payload, context) -> {
 			context.client().execute(() -> {
-				ContainerInstance.containers.clear();
-				ContainerInstance.players.clear();
-				payload.containers().forEach((uuid, container) -> {
-					ContainerInstance.containers.put(uuid, container);
-					PlayerContainer.LOGGER.info("Recieved "+uuid.toString()+" ("+container.getContainerKey()+")");
-				});
-				payload.players().forEach((player, container) -> {
-					ContainerInstance.players.put(player, container);
-					PlayerContainer.LOGGER.info("Recieved "+
-						player.getName()+" in "+container.toString());
-				});
+				if (!context.client().isIntegratedServerRunning()) {
+					ContainerInstance.containers.clear();
+					ContainerInstance.players.clear();
+					payload.containers().forEach((uuid, container) -> {
+						ContainerInstance.containers.put(uuid, container);
+						PlayerContainer.LOGGER.info("Recieved "+uuid.toString()+" ("+container.getContainerKey()+")");
+					});
+					payload.players().forEach((player, container) -> {
+						ContainerInstance.players.put(player, container);
+						PlayerContainer.LOGGER.info("Recieved "+
+							player.getName()+" in "+container.toString());
+					});
+				}
 			});
 		});
 		ModelPredicateProviderRegistry.register(Items.basicContainer, Identifier.ofVanilla("captured"), captureCountProvider);

@@ -45,6 +45,7 @@ public class PlayerContainer implements ModInitializer {
 		ItemGroups.initialize();
 		Commands.intialize();
 		Events.initialize();
+		DispenserBehaviour.initialize();
 
 	}
 
