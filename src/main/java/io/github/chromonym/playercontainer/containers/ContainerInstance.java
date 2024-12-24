@@ -63,7 +63,7 @@ public class ContainerInstance<C extends AbstractContainer> {
     private UUID ID;
     private Entity ownerEntity;
     private BlockEntity ownerBlockEntity;
-    private Set<GameProfile> playerCache = null;
+    public Set<GameProfile> playerCache = new HashSet<GameProfile>();
 
     public ContainerInstance(C container) {
         this(container, UUID.randomUUID());
@@ -127,7 +127,6 @@ public class ContainerInstance<C extends AbstractContainer> {
                     containedPlayers.add(entry.getKey());
                 }
             }
-            this.playerCache = containedPlayers;
             return containedPlayers;
         }
     }
@@ -146,9 +145,20 @@ public class ContainerInstance<C extends AbstractContainer> {
 
     public int getPlayerCount(@Nullable PlayerEntity player) {
         int containedPlayers = 0;
-        for (Entry<GameProfile, UUID> entry : players.entrySet()) {
-            if (entry.getValue() == this.getID() && (player == null || player.getUuid() != entry.getKey().getId())) {
-                containedPlayers++;
+        if (playerCache == null) {
+            for (Entry<GameProfile, UUID> entry : players.entrySet()) {
+                if (entry.getValue() == this.getID() && (player == null || player.getUuid() != entry.getKey().getId())) {
+                    containedPlayers++;
+                }
+            }
+        } else {
+            containedPlayers = playerCache.size();
+            if (player != null) {
+                for (GameProfile prof : playerCache) {
+                    if (prof.getId() == player.getUuid()) {
+                        containedPlayers--;
+                    }
+                }
             }
         }
         return containedPlayers;

@@ -95,6 +95,7 @@ public abstract class AbstractContainer {
         }
         if (ci.getPlayerCount(player) < this.maxPlayers || recapturing) {
             ContainerInstance.players.put(player.getGameProfile(), ci.getID());
+            ci.playerCache.add(player.getGameProfile());
             onCapture(player, ci);
             if (!player.getWorld().isClient()) {
                 PlayerContainer.sendCIPtoAll(player.getServer().getPlayerManager());
@@ -133,6 +134,9 @@ public abstract class AbstractContainer {
                 // if they haven't been recaptured yet, do that first!
                 ContainerInstance.playersToRelease.put(profile.getId(), ci.getID());
             } else {
+                if (ci.playerCache != null) {
+                    ci.playerCache.remove(profile); // will probably be a bit jank with changing names but that's a future me problem
+                }
                 onRelease(players.getPlayer(profile.getId()), ci); // run onRelease
                 ContainerInstance.players.remove(profile); // remove them from the captured players
                 if (!player.getWorld().isClient()) {
