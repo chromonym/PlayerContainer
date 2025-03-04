@@ -53,15 +53,16 @@ public class SpectatorContainer extends AbstractContainer {
     }
 
     @Override
-    public void onRelease(PlayerEntity player, ContainerInstance<?> ci) {
+    public void onRelease(PlayerEntity player, ContainerInstance<?> ci, BlockPos pos) {
         if (player instanceof ServerPlayerEntity serverPlayer) {
+            serverPlayer.teleportTo(new TeleportTarget(serverPlayer.getServerWorld(), pos.toCenterPos(), Vec3d.ZERO, player.getYaw(), player.getPitch(), TeleportTarget.NO_OP));
             serverPlayer.changeGameMode(serverPlayer.getServer().getDefaultGameMode());
         }
     }
 
     @Override
-    public void onTempRelease(PlayerEntity player, ContainerInstance<?> ci) {
-        onRelease(player, ci);
+    public void onTempRelease(PlayerEntity player, ContainerInstance<?> ci, BlockPos pos) {
+        onRelease(player, ci, pos);
     }
 
     @Override
@@ -106,7 +107,7 @@ public class SpectatorContainer extends AbstractContainer {
     }
 
     @Override
-    public void onDestroy(ContainerInstance<?> ci) {
+    public void onDestroy(ContainerInstance<?> ci, BlockPos pos) {
         // Does nothing (releases players anyway)
     }
 

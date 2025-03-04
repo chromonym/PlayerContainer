@@ -75,7 +75,7 @@ public class Events {
                 // player is in a container
                 ContainerInstance<?> ci = ContainerInstance.containers.get(ContainerInstance.players.get(player.getGameProfile())); // temporarily release that player
                 if (ci != null) {
-                    ci.release(player, true);
+                    ci.release(player, true, ci.getBlockPos());
                 }
             }
 		});
@@ -89,7 +89,7 @@ public class Events {
                 });
 			}
 			for (ContainerInstance<?> cont : toRemoveAll) {
-				cont.releaseAll(world.getServer().getPlayerManager(), true);
+				cont.releaseAll(world.getServer().getPlayerManager(), true, blockEntity.getPos());
 			}
 		});
         ServerBlockEntityEvents.BLOCK_ENTITY_LOAD.register((blockEntity, world) -> {

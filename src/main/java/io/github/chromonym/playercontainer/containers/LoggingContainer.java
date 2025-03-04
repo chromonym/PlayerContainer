@@ -7,6 +7,7 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.math.BlockPos;
 
 public class LoggingContainer extends AbstractContainer {
 
@@ -16,13 +17,13 @@ public class LoggingContainer extends AbstractContainer {
     }
 
     @Override
-    public void onRelease(PlayerEntity player, ContainerInstance<?> ci) {
-        PlayerContainer.LOGGER.info("Actually released player "+player.getNameForScoreboard());
+    public void onRelease(PlayerEntity player, ContainerInstance<?> ci, BlockPos pos) {
+        PlayerContainer.LOGGER.info("Actually released player "+player.getNameForScoreboard()+" at "+pos.toShortString());
     }
 
     @Override
-    public void onTempRelease(PlayerEntity player, ContainerInstance<?> ci) {
-        PlayerContainer.LOGGER.info("Temporarliy released player "+player.getNameForScoreboard());
+    public void onTempRelease(PlayerEntity player, ContainerInstance<?> ci, BlockPos pos) {
+        PlayerContainer.LOGGER.info("Temporarliy released player "+player.getNameForScoreboard()+" at "+pos.toShortString());
     }
 
     @Override
@@ -45,8 +46,8 @@ public class LoggingContainer extends AbstractContainer {
     }
 
     @Override
-    public void onDestroy(ContainerInstance<?> ci) {
-        PlayerContainer.LOGGER.info("Destroyed container "+ci.getID().toString());
+    public void onDestroy(ContainerInstance<?> ci, BlockPos pos) {
+        PlayerContainer.LOGGER.info("Destroyed container "+ci.getID().toString()+" at "+pos.toShortString());
     }
 
     @Override

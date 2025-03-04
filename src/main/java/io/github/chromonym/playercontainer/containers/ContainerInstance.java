@@ -181,6 +181,14 @@ public class ContainerInstance<C extends AbstractContainer> {
         }
     }
 
+    public BlockPos getBlockPos() {
+        if (ownerEntity != null) {
+            return ownerEntity.getBlockPos();
+        } else {
+            return ownerBlockEntity.getPos();
+        }
+    }
+
     public static void checkRecaptureDecapture(World world) {
         Map<PlayerEntity, ContainerInstance<?>> recaptured = new HashMap<PlayerEntity, ContainerInstance<?>>();
         Map<PlayerEntity, ContainerInstance<?>> released = new HashMap<PlayerEntity, ContainerInstance<?>>();
@@ -209,7 +217,7 @@ public class ContainerInstance<C extends AbstractContainer> {
         }
         for (Entry<PlayerEntity,ContainerInstance<?>> entry : recaptured.entrySet()) {
             if (!entry.getValue().capture(entry.getKey(), true)) {
-                entry.getValue().release(entry.getKey(), false);
+                entry.getValue().release(entry.getKey(), false, entry.getValue().getBlockPos());
             }
             ContainerInstance.playersToRecapture.remove(entry.getKey().getUuid());
         }
@@ -238,7 +246,7 @@ public class ContainerInstance<C extends AbstractContainer> {
         }
         for (Entry<PlayerEntity,ContainerInstance<?>> entry : released.entrySet()) {
             ContainerInstance.playersToRelease.remove(entry.getKey().getUuid());
-            entry.getValue().release(entry.getKey(), false);
+            entry.getValue().release(entry.getKey(), false, entry.getValue().getBlockPos());
         }
     }
 
@@ -248,7 +256,7 @@ public class ContainerInstance<C extends AbstractContainer> {
                 UUID contID = players.get(profile);
                 if (contID != null && containers.containsKey(contID)) {
                     ContainerInstance<?> ci = containers.get(contID);
-                    if (ci != null) { ci.release(player, false); }
+                    if (ci != null) { ci.release(player, false, ci.getBlockPos()); }
                 } else {
                     PlayerContainer.LOGGER.warn("COULD NOT RELEASE PLAYER");
                 }
@@ -265,7 +273,7 @@ public class ContainerInstance<C extends AbstractContainer> {
         if (entity != ownerEntity) {
             if (entity instanceof PlayerEntity pe) {
                 if (getPlayers().contains(pe.getGameProfile())) {
-                    release(pe, false);
+                    release(pe, false, ownerEntity.getBlockPos());
                 }
             }
             container.onOwnerChange(getOwner(), Either.left(entity), this);
@@ -288,18 +296,18 @@ public class ContainerInstance<C extends AbstractContainer> {
         return container.capture(player, this, temp);
     }
 
-    public void release(PlayerEntity player, boolean temp) {
-        container.release(player, this, temp);
+    public void release(PlayerEntity player, boolean temp, BlockPos pos) {
+        container.release(player, this, temp, pos);
     }
 
-    public void releaseAll(PlayerManager players, boolean temp) {
-        container.releaseAll(players, this, temp);
+    public void releaseAll(PlayerManager players, boolean temp, BlockPos pos) {
+        container.releaseAll(players, this, temp, pos);
     }
 
-    public void destroy(PlayerManager players) {
+    public void destroy(PlayerManager players, BlockPos pos) {
         containers.remove(ID);
         PlayerContainer.sendCIPtoAll(players);
-        container.destroy(players, this);
+        container.destroy(players, this, pos);
     }
 
     public void onPlayerTick(ServerPlayerEntity player) {

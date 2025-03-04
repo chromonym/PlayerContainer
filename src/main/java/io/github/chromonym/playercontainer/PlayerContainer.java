@@ -104,7 +104,7 @@ public class PlayerContainer implements ModInitializer {
 			});
 		}
 		for (ContainerInstance<?> ci : toDestroy) {
-			ci.destroy(players);
+			ci.destroy(players, ci.getBlockPos());
 		}
 	}
 

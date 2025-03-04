@@ -5,6 +5,7 @@ import io.github.chromonym.playercontainer.containers.ContainerInstance;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemUsageContext;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
@@ -27,11 +28,25 @@ public class SimpleContainerItem<C extends AbstractContainer> extends AbstractCo
     }
 
     @Override
+    public ActionResult useOnBlock(ItemUsageContext context) {
+        PlayerEntity user = context.getPlayer();
+        World world = context.getWorld();
+        Hand hand = context.getHand();
+        ContainerInstance<?> cont = getOrMakeContainerInstance(user.getStackInHand(hand), user.getWorld());
+        if (cont != null) {
+            cont.getContainer().releaseAll(world.getServer().getPlayerManager(), cont, context.getBlockPos().add(context.getSide().getVector()));
+            return ActionResult.SUCCESS;
+        }
+        // TODO Auto-generated method stub
+        return super.useOnBlock(context);
+    }
+
+    @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         if (user.isSneaking()) {
             ContainerInstance<?> cont = getOrMakeContainerInstance(user.getStackInHand(hand), user.getWorld());
             if (cont != null) {
-                cont.getContainer().releaseAll(world.getServer().getPlayerManager(), cont);
+                cont.getContainer().releaseAll(world.getServer().getPlayerManager(), cont, user.getBlockPos());
                 return TypedActionResult.success(user.getStackInHand(hand));
             }
         }

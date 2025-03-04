@@ -85,7 +85,7 @@ public class AbstractContainerItem<C extends AbstractContainer> extends Item {
     @Override
     public void onItemEntityDestroyed(ItemEntity entity) {
         ContainerInstance<?> cont = this.getOrMakeContainerInstance(entity.getStack(), entity.getWorld());
-        if (cont != null) {cont.destroy(entity.getServer().getPlayerManager());}
+        if (cont != null) {cont.destroy(entity.getServer().getPlayerManager(), entity.getBlockPos());}
     }
 
     @Override

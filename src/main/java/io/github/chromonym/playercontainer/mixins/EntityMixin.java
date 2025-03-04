@@ -67,10 +67,10 @@ public class EntityMixin {
             }
         }
         for (ContainerInstance<?> cont : toDestroy) {
-            cont.destroy(thisE.getServer().getPlayerManager());
+            cont.destroy(thisE.getServer().getPlayerManager(), thisE.getBlockPos());
         }
         for (ContainerInstance<?> cont : toRemoveAll) {
-            cont.releaseAll(thisE.getServer().getPlayerManager(), true);
+            cont.releaseAll(thisE.getServer().getPlayerManager(), true, thisE.getBlockPos());
         }
     }
 }

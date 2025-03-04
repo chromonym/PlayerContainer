@@ -49,7 +49,7 @@ public class ContainerDispenserBehaviour extends FallibleItemDispenserBehavior {
 
     private static boolean tryRelease(ServerWorld world, BlockPos pos, ContainerInstance<?> ci) {
         boolean bl = ci.getPlayerCount() > 0;
-        ci.releaseAll(world.getServer().getPlayerManager(), false);
+        ci.releaseAll(world.getServer().getPlayerManager(), false, pos);
         return bl;
     }
     

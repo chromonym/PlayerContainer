@@ -15,6 +15,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.math.BlockPos;
 
 public abstract class AbstractContainer {
     /*
@@ -106,20 +107,20 @@ public abstract class AbstractContainer {
         return false;
     }
 
-    public final void release(PlayerEntity player, ContainerInstance<?> ci) {
-        release(player, ci, false);
+    public final void release(PlayerEntity player, ContainerInstance<?> ci, BlockPos pos) {
+        release(player, ci, false, pos);
     }
     
-    public final void release(PlayerEntity player, ContainerInstance<?> ci, boolean recaptureLater) {
-        release(player.getGameProfile(), player.getServer().getPlayerManager(), ci, recaptureLater);
+    public final void release(PlayerEntity player, ContainerInstance<?> ci, boolean recaptureLater, BlockPos pos) {
+        release(player.getGameProfile(), player.getServer().getPlayerManager(), ci, recaptureLater, pos);
     }
 
-    public final void release(GameProfile profile, PlayerManager players, ContainerInstance<?> ci, boolean recaptureLater) {
+    public final void release(GameProfile profile, PlayerManager players, ContainerInstance<?> ci, boolean recaptureLater, BlockPos pos) {
         PlayerEntity player = players.getPlayer(profile.getId());
         if (recaptureLater) { // if the player has just logged off or container is unavailable (not actually released)
             ContainerInstance.playersToRecapture.put(profile.getId(), ci.getID()); // add them to recapture list
             if (ContainerInstance.players.containsKey(profile) && player != null) { // remove them from this container temporarily
-                onTempRelease(player, ci);
+                onTempRelease(player, ci, pos);
                 if (!player.getWorld().isClient()) {
                     PlayerContainer.sendCIPtoAll(player.getServer().getPlayerManager());
                 }
@@ -137,7 +138,7 @@ public abstract class AbstractContainer {
                 if (ci.playerCache != null) {
                     ci.playerCache.remove(profile); // will probably be a bit jank with changing names but that's a future me problem
                 }
-                onRelease(players.getPlayer(profile.getId()), ci); // run onRelease
+                onRelease(players.getPlayer(profile.getId()), ci, pos); // run onRelease
                 ContainerInstance.players.remove(profile); // remove them from the captured players
                 if (!player.getWorld().isClient()) {
                     PlayerContainer.sendCIPtoAll(player.getServer().getPlayerManager());
@@ -146,18 +147,18 @@ public abstract class AbstractContainer {
         }
     }
 
-    public final void releaseAll(PlayerManager players, ContainerInstance<?> ci) {
-        releaseAll(players, ci, false);
+    public final void releaseAll(PlayerManager players, ContainerInstance<?> ci, BlockPos pos) {
+        releaseAll(players, ci, false, pos);
     }
 
-    public final void releaseAll(PlayerManager players, ContainerInstance<?> ci, boolean recaptureLater) {
+    public final void releaseAll(PlayerManager players, ContainerInstance<?> ci, boolean recaptureLater, BlockPos pos) {
         Set<GameProfile> toRelease = new HashSet<GameProfile>();
         for (GameProfile profile : ContainerInstance.players.keySet()) {
             toRelease.add(profile);
             //release(profile, players, ci, recaptureLater);
         }
         for (GameProfile profile : toRelease) {
-            release(profile, players, ci, recaptureLater);
+            release(profile, players, ci, recaptureLater, pos);
         }
         /*if (!recaptureLater) {
             for (Entry<UUID,UUID> entry : ContainerInstance.playersToRecapture.entrySet()) {
@@ -168,18 +169,18 @@ public abstract class AbstractContainer {
         }*/
     }
 
-    public final void destroy(PlayerManager players, ContainerInstance<?> ci) {
-        onDestroy(ci);
-        releaseAll(players, ci);
+    public final void destroy(PlayerManager players, ContainerInstance<?> ci, BlockPos pos) {
+        onDestroy(ci, pos);
+        releaseAll(players, ci, pos);
     }
 
     public abstract void onCapture(PlayerEntity player, ContainerInstance<?> ci);
     // Ran whenever a player is captured in the given ContainerInstance
 
-    public abstract void onRelease(PlayerEntity player, ContainerInstance<?> ci);
+    public abstract void onRelease(PlayerEntity player, ContainerInstance<?> ci, BlockPos pos);
     // Ran whenever a player is released from the given ContainerInstance
 
-    public abstract void onTempRelease(PlayerEntity player, ContainerInstance<?> ci);
+    public abstract void onTempRelease(PlayerEntity player, ContainerInstance<?> ci, BlockPos pos);
     /* Ran whenever a player disconnects or the container becomes temporarily unavailable.
      * NOTE: DOES NOT RUN on a real release! */
 
@@ -190,7 +191,7 @@ public abstract class AbstractContainer {
     public abstract void onOwnerChange(Either<Entity, BlockEntity> oldOwner, Either<Entity, BlockEntity> newOwner, ContainerInstance<?> ci);
     // Ran whenever this container's owner changes
 
-    public abstract void onDestroy(ContainerInstance<?> ci);
+    public abstract void onDestroy(ContainerInstance<?> ci, BlockPos pos);
     // Ran whenever this container is destroyed (through its owner despawning (NOT unloading) or its item entity being killed)
     // NOTE: onRelease is still ran for all contained players!
 
