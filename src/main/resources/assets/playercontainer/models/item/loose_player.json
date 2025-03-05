@@ -1,0 +1,14 @@
+{
+    "parent": "item/generated",
+    "textures": {
+        "layer0": "playercontainer:item/loose_player"
+    },
+    "overrides": [
+        {
+            "predicate": {
+                "captured": 0.1
+            },
+            "model": "playercontainer:item/loose_player_full"
+        }
+    ]
+}

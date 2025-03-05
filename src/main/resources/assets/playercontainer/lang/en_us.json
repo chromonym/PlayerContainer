@@ -3,6 +3,8 @@
     "item.playercontainer.large_container": "Large Container",
     "item.playercontainer.huge_container": "Huge Container",
     "item.playercontainer.singularity_container": "Singularity Container",
+    "item.playercontainer.loose_player": "Loose Player",
+    "item.playercontainer.loose_player.named": "%s",
     "item.playercontainer.debug_container": "Debug Container",
     "item.playercontainer.player_essence": "Player Essence",
     "item.playercontainer.player_essence.named": "%s's Player Essence",

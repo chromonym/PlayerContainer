@@ -6,6 +6,7 @@ import io.github.chromonym.playercontainer.networking.ContainerInstancesPayload;
 import io.github.chromonym.playercontainer.registries.Items;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
 import net.minecraft.client.item.ClampedModelPredicateProvider;
 import net.minecraft.client.item.ModelPredicateProviderRegistry;
 import net.minecraft.util.Identifier;
@@ -64,5 +65,7 @@ public class PlayerContainerClient implements ClientModInitializer {
 		ModelPredicateProviderRegistry.register(Items.largeContainer, Identifier.ofVanilla("captured"), captureCountProvider);
 		ModelPredicateProviderRegistry.register(Items.hugeContainer, Identifier.ofVanilla("captured"), captureCountProvider);
 		ModelPredicateProviderRegistry.register(Items.singularityContainer, Identifier.ofVanilla("captured"), infiniteCaptureCountProvider);
+		ModelPredicateProviderRegistry.register(Items.loosePlayer, Identifier.ofVanilla("captured"), captureCountProvider);
+		BuiltinItemRendererRegistry.INSTANCE.register(Items.loosePlayer, new LoosePlayerRenderer());
 	}
 }
