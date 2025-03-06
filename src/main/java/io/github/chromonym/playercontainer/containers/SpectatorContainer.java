@@ -85,7 +85,7 @@ public class SpectatorContainer extends AbstractContainer {
                             //player.teleport((ServerWorld)blockEntity.getWorld(), blockPos.getX(), blockPos.getY()-player.getEyeHeight(player.getPose())+0.5, blockPos.getZ(), player.getYaw(), player.getPitch());
                         }
                         oldOwner.ifRight(oldBlockEntity -> {
-                            if (oldBlockEntity != null && isWithinBlock(player.getEyePos(), oldBlockEntity.getPos())) {
+                            if (player != null && oldBlockEntity != null && isWithinBlock(player.getEyePos(), oldBlockEntity.getPos())) {
                                 player.teleportTo(new TeleportTarget((ServerWorld)blockEntity.getWorld(), blockEntity.getPos().toCenterPos().add(0, -player.getEyeHeight(player.getPose()), 0), Vec3d.ZERO, player.getYaw(), player.getPitch(), blockEntity.getWorld() == player.getWorld() ? TeleportTarget.NO_OP : TeleportTarget.SEND_TRAVEL_THROUGH_PORTAL_PACKET));
                             }
                         });
@@ -98,7 +98,7 @@ public class SpectatorContainer extends AbstractContainer {
                         player.setCameraEntity(entity);
                     }
                 }).ifLeft(newEntity -> {
-                    if (player.getCameraEntity() != null && player.getCameraEntity() != player) {
+                    if (player != null && player.getCameraEntity() != null && player.getCameraEntity() != player) {
                         player.setCameraEntity(newEntity);
                     }
                 });
