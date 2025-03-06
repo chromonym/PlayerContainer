@@ -32,21 +32,26 @@ public class LoosePlayerRenderer implements DynamicItemRenderer {
                 if (!players.isEmpty()) {
                     prof = players.iterator().next();
                 } else {
-                    prof = new GameProfile(UUID.fromString("25eb800c-06ce-4961-96d4-a6959a4200bc"), "chromonym");
+                    prof = mci.getGameProfile(); // use self as fallback
                 }
                 matrices.push();
-                // TODO: rotate, scale, translate the player model based on the ModelTransformationMode
                 switch (mode) {
                     case FIRST_PERSON_LEFT_HAND:
-                        matrices.scale(0.5f, 0.5f, 0.5f);
+                        matrices.translate(-0.25f, -0.25f, 0.0f);
+                        matrices.scale(0.625f, 0.625f, 0.625f);
                         matrices.multiply(new Quaternionf(new AxisAngle4f((float)Math.toRadians(90.0),0f,1f,0f)));
+                        matrices.multiply(new Quaternionf(new AxisAngle4f((float)Math.toRadians(-25.0),0f,0f,1f)));
                         break;
                     case FIRST_PERSON_RIGHT_HAND:
-                        matrices.translate(1.0f, 0.0f, 0.0f);
-                        matrices.scale(0.5f, 0.5f, 0.5f);
+                        matrices.translate(1.25f, -0.25f, 0.0f);
+                        matrices.scale(0.625f, 0.625f, 0.625f);
                         matrices.multiply(new Quaternionf(new AxisAngle4f((float)Math.toRadians(-90.0),0f,1f,0f)));
+                        matrices.multiply(new Quaternionf(new AxisAngle4f((float)Math.toRadians(25.0),0f,0f,1f)));
                         break;
                     case FIXED:
+                        matrices.multiply(new Quaternionf(new AxisAngle4f((float)Math.toRadians(180.0),0f,1f,0f)));
+                        matrices.translate(-0.5f, 0f, -0.5f);
+                        matrices.scale(0.5f, 0.5f, 0.5f);
                         break;
                     case GROUND:
                         matrices.translate(0.5f, 0.25f, 0.5f);
@@ -57,14 +62,15 @@ public class LoosePlayerRenderer implements DynamicItemRenderer {
                         matrices.scale(0.5f, 0.5f, 0.5f);
                         break;
                     case HEAD:
+                        matrices.multiply(new Quaternionf(new AxisAngle4f((float)Math.toRadians(180.0),0f,1f,0f)));
+                        matrices.translate(-0.5f, 0.75f, -0.5f);
+                        matrices.scale(0.5f, 0.5f, 0.5f);
                         break;
-                    case NONE:
-                        break;
-                    case THIRD_PERSON_LEFT_HAND: // done
+                    case THIRD_PERSON_LEFT_HAND:
                         matrices.translate(0.5f, 0.3125f, 0.5625f);
                         matrices.scale(0.3125f, 0.3125f, 0.3125f);
                         break;
-                    case THIRD_PERSON_RIGHT_HAND: // done
+                    case THIRD_PERSON_RIGHT_HAND:
                         matrices.translate(0.5f, 0.3125f, 0.5625f);
                         matrices.scale(0.3125f, 0.3125f, 0.3125f);
                         break;

@@ -2,6 +2,8 @@ package io.github.chromonym.playercontainer.registries;
 
 import java.util.UUID;
 
+import com.mojang.serialization.Codec;
+
 import io.github.chromonym.playercontainer.PlayerContainer;
 import net.minecraft.component.ComponentType;
 import net.minecraft.registry.Registries;
@@ -20,6 +22,11 @@ public class ItemComponents {
         Registries.DATA_COMPONENT_TYPE,
         PlayerContainer.identifier("name"),
         ComponentType.<String>builder().codec(Codecs.NON_EMPTY_STRING).build()
+    );
+    public static final ComponentType<Boolean> BREAK_ON_RELEASE = Registry.register(
+        Registries.DATA_COMPONENT_TYPE,
+        PlayerContainer.identifier("break_on_release"),
+        ComponentType.<Boolean>builder().codec(Codec.BOOL).build()
     );
     
     public static void initialize() {}

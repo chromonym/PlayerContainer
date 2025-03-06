@@ -1,7 +1,10 @@
 package io.github.chromonym.playercontainer.items;
 
+import org.jetbrains.annotations.NotNull;
+
 import io.github.chromonym.playercontainer.containers.AbstractContainer;
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
+import io.github.chromonym.playercontainer.registries.ItemComponents;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -9,6 +12,7 @@ import net.minecraft.item.ItemUsageContext;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 public class SimpleContainerItem<C extends AbstractContainer> extends AbstractContainerItem<C> {
@@ -32,12 +36,12 @@ public class SimpleContainerItem<C extends AbstractContainer> extends AbstractCo
         PlayerEntity user = context.getPlayer();
         World world = context.getWorld();
         Hand hand = context.getHand();
-        ContainerInstance<?> cont = getOrMakeContainerInstance(user.getStackInHand(hand), user.getWorld());
+        ItemStack stack = user.getStackInHand(hand);
+        ContainerInstance<?> cont = getOrMakeContainerInstance(stack, user.getWorld());
         if (cont != null) {
-            cont.getContainer().releaseAll(world.getServer().getPlayerManager(), cont, context.getBlockPos().add(context.getSide().getVector()));
+            doRelease(stack, cont, world, user, hand, context.getBlockPos().add(context.getSide().getVector()));
             return ActionResult.SUCCESS;
         }
-        // TODO Auto-generated method stub
         return super.useOnBlock(context);
     }
 
@@ -46,11 +50,20 @@ public class SimpleContainerItem<C extends AbstractContainer> extends AbstractCo
         if (user.isSneaking()) {
             ContainerInstance<?> cont = getOrMakeContainerInstance(user.getStackInHand(hand), user.getWorld());
             if (cont != null) {
-                cont.getContainer().releaseAll(world.getServer().getPlayerManager(), cont, user.getBlockPos());
+                doRelease(user.getStackInHand(hand), cont, world, user, hand, user.getBlockPos());
                 return TypedActionResult.success(user.getStackInHand(hand));
             }
         }
         return super.use(world, user, hand);
     }
     
+    public void doRelease(ItemStack stack, @NotNull ContainerInstance<?> cont, World world, PlayerEntity user, Hand hand, BlockPos releasePos) {
+        if (stack.getOrDefault(ItemComponents.BREAK_ON_RELEASE, false)) {
+            cont.getContainer().destroy(world.getServer().getPlayerManager(), cont, releasePos);
+            user.setStackInHand(hand, ItemStack.EMPTY);
+        } else {
+            cont.getContainer().releaseAll(world.getServer().getPlayerManager(), cont, releasePos);
+        }
+    }
+
 }
