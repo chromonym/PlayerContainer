@@ -1,0 +1,6 @@
+{
+    "variants": {
+        "captured=false": { "model": "playercontainer:block/cage_empty" },
+        "captured=true": { "model": "playercontainer:block/cage_full" }
+    }
+}

@@ -14,6 +14,7 @@ import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
+import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.item.tooltip.TooltipType;
@@ -100,6 +101,14 @@ public class CageBlockItem extends BlockItem implements ContainerInstanceHolder<
             return ActionResult.SUCCESS;
         }
         return super.useOnBlock(context);
+    }
+
+    @Override
+    public ActionResult place(ItemPlacementContext context) {
+        if (context.getPlayer().isSneaking()) {
+            return ActionResult.SUCCESS;
+        }
+        return super.place(context);
     }
 
     @Override

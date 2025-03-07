@@ -5,23 +5,50 @@ import com.mojang.serialization.MapCodec;
 import io.github.chromonym.blockentities.CageBlockEntity;
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
 import io.github.chromonym.playercontainer.items.CageBlockItem;
+import io.github.chromonym.playercontainer.items.ContainerInstanceHolder;
 import io.github.chromonym.playercontainer.registries.BlockEntities;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.BlockWithEntity;
+import net.minecraft.block.ShapeContext;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.block.piston.PistonBehavior;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.StateManager.Builder;
+import net.minecraft.state.property.BooleanProperty;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.util.shape.VoxelShapes;
+import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 
 public class CageBlock extends BlockWithEntity {
 
+    public static final BooleanProperty CAPTURED = BooleanProperty.of("captured");
+
+    public static final VoxelShape cageShape = VoxelShapes.union(VoxelShapes.cuboid(0.9375, 0, 0, 1, 1, 1),
+                                                                 VoxelShapes.cuboid(0, 0.9375, 0, 1, 1, 1),
+                                                                 VoxelShapes.cuboid(0, 0, 0.9375, 1, 1, 1),
+                                                                 VoxelShapes.cuboid(0, 0, 0, 0.0625, 1, 1),
+                                                                 VoxelShapes.cuboid(0, 0, 0, 1, 0.0625, 1),
+                                                                 VoxelShapes.cuboid(0, 0, 0, 1, 1, 0.0625));
+
     public CageBlock(Settings settings) {
         super(settings.nonOpaque().pistonBehavior(PistonBehavior.BLOCK));
+        setDefaultState(getDefaultState().with(CAPTURED, false));
+    }
+
+    @Override
+    protected void appendProperties(Builder<Block, BlockState> builder) {
+        builder.add(CAPTURED);
+        super.appendProperties(builder);
     }
 
     @Override
@@ -33,6 +60,17 @@ public class CageBlock extends BlockWithEntity {
             }
         }
         super.onPlaced(world, pos, state, placer, itemStack);
+    }
+
+    @Override
+    public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+        if (player.isCreative() && !world.isClient) {
+            if (world.getBlockEntity(pos) instanceof CageBlockEntity cbe) {
+                ContainerInstance<?> ci = cbe.getOrMakeContainerInstance(cbe, world);
+                ci.destroy(world.getServer().getPlayerManager(), pos);
+            }
+        }
+        return super.onBreak(world, pos, state, player);
     }
 
     @Override
@@ -51,9 +89,44 @@ public class CageBlock extends BlockWithEntity {
     }
 
     @Override
+    protected VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+        return cageShape;
+    }
+
+    @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state,
             BlockEntityType<T> type) {
         return validateTicker(type, BlockEntities.CAGE_BLOCK_ENTITY, CageBlockEntity::tick);
+    }
+
+    @Override
+    protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
+        BlockEntity entity = world.getBlockEntity(pos);
+        if (entity instanceof ContainerInstanceHolder cih) {
+            ContainerInstance<?> ci = cih.getOrMakeContainerInstance(entity, world);
+            if (ci != null && ci.capture(player, false)) {
+                world.updateComparators(pos, this);
+                return ActionResult.SUCCESS;
+            }
+        }
+        return super.onUse(state, world, pos, player, hit);
+    }
+
+    @Override
+    protected boolean hasComparatorOutput(BlockState state) {
+        return true;
+    }
+
+    @Override
+    protected int getComparatorOutput(BlockState state, World world, BlockPos pos) {
+        BlockEntity entity = world.getBlockEntity(pos);
+        if (entity instanceof ContainerInstanceHolder cih) {
+            ContainerInstance<?> ci = cih.getOrMakeContainerInstance(entity, world);
+            if (ci != null && ci.getPlayerCount() > 0) {
+                return 15;
+            }
+        }
+        return 0;
     }
     
 }

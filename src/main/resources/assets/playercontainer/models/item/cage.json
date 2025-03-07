@@ -1,0 +1,11 @@
+{
+    "parent": "playercontainer:block/cage_empty",
+    "overrides": [
+        {
+            "predicate": {
+                "captured": 0.1
+            },
+            "model": "playercontainer:block/cage_full"
+        }
+    ]
+}
