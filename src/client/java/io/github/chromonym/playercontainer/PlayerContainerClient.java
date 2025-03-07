@@ -1,7 +1,7 @@
 package io.github.chromonym.playercontainer;
 
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
-import io.github.chromonym.playercontainer.items.AbstractContainerItem;
+import io.github.chromonym.playercontainer.items.ContainerInstanceHolder;
 import io.github.chromonym.playercontainer.networking.ContainerInstancesPayload;
 import io.github.chromonym.playercontainer.registries.Items;
 import net.fabricmc.api.ClientModInitializer;
@@ -15,7 +15,7 @@ public class PlayerContainerClient implements ClientModInitializer {
 
 	public static final ClampedModelPredicateProvider captureCountProvider = (itemStack, clientWorld, livingEntity, seed) -> {
 		// returns a float representing the percentage of its maximum size filled
-		if (itemStack.getItem() instanceof AbstractContainerItem aci) {
+		if (itemStack.getItem() instanceof ContainerInstanceHolder aci) {
 			ContainerInstance<?> ci = aci.getOrMakeContainerInstance(itemStack, clientWorld, true);
 			if (ci != null) {
 				if (ci.getMaxPlayerCount() == 0) {
@@ -30,7 +30,7 @@ public class PlayerContainerClient implements ClientModInitializer {
 
 	public static final ClampedModelPredicateProvider infiniteCaptureCountProvider = (itemStack, clientWorld, livingEntity, seed) -> {
 		// returns 0 if it contains no players, 1 if it contains any
-		if (itemStack.getItem() instanceof AbstractContainerItem aci) {
+		if (itemStack.getItem() instanceof ContainerInstanceHolder aci) {
 			ContainerInstance<?> ci = aci.getOrMakeContainerInstance(itemStack, clientWorld, true);
 			if (ci != null) {
 				if (ci.getPlayerCount(true) > 0) {

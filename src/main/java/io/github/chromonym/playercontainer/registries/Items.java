@@ -3,6 +3,7 @@ package io.github.chromonym.playercontainer.registries;
 import io.github.chromonym.playercontainer.PlayerContainer;
 import io.github.chromonym.playercontainer.containers.LoggingContainer;
 import io.github.chromonym.playercontainer.containers.SpectatorContainer;
+import io.github.chromonym.playercontainer.items.CageBlockItem;
 import io.github.chromonym.playercontainer.items.NamedItem;
 import io.github.chromonym.playercontainer.items.NamedSingleContainerItem;
 import io.github.chromonym.playercontainer.items.SimpleContainerItem;
@@ -22,6 +23,7 @@ public class Items {
     public static final SimpleContainerItem<SpectatorContainer> singularityContainer = register(new SimpleContainerItem<SpectatorContainer>(Containers.INFINITE_SPECTATOR_CONTAINER, new Item.Settings().rarity(Rarity.EPIC)), "singularity_container");
     // Special Containers
     public static final NamedSingleContainerItem<SpectatorContainer> loosePlayer = register(new NamedSingleContainerItem<SpectatorContainer>(Containers.SPECTATOR_CONTAINER, new Item.Settings()), "loose_player");
+    public static final CageBlockItem cageBlock = register(new CageBlockItem(Containers.CAGE_SPECTATOR_CONTAINER, new Item.Settings()), "cage");
     // Other Items
     public static final NamedItem playerEssence = register(new NamedItem(new Item.Settings()), "player_essence");
     public static final NamedItem playerEssenceBottle = register(new NamedItem(new Item.Settings().recipeRemainder(net.minecraft.item.Items.GLASS_BOTTLE)), "player_essence_bottle");

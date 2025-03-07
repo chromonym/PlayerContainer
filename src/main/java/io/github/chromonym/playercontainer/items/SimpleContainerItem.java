@@ -1,10 +1,7 @@
 package io.github.chromonym.playercontainer.items;
 
-import org.jetbrains.annotations.NotNull;
-
 import io.github.chromonym.playercontainer.containers.AbstractContainer;
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
-import io.github.chromonym.playercontainer.registries.ItemComponents;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -12,10 +9,11 @@ import net.minecraft.item.ItemUsageContext;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 public class SimpleContainerItem<C extends AbstractContainer> extends AbstractContainerItem<C> {
+
+    // I KNOW THIS IS BAD CODE (fix later:tm:) BUT SOME OF THIS IS COPIED IN CAGEBLOCKITEM
 
     public SimpleContainerItem(C container, Settings settings) {
         super(container, settings);
@@ -55,15 +53,6 @@ public class SimpleContainerItem<C extends AbstractContainer> extends AbstractCo
             }
         }
         return super.use(world, user, hand);
-    }
-    
-    public void doRelease(ItemStack stack, @NotNull ContainerInstance<?> cont, World world, PlayerEntity user, Hand hand, BlockPos releasePos) {
-        if (stack.getOrDefault(ItemComponents.BREAK_ON_RELEASE, false)) {
-            cont.getContainer().destroy(world.getServer().getPlayerManager(), cont, releasePos);
-            user.setStackInHand(hand, ItemStack.EMPTY);
-        } else {
-            cont.getContainer().releaseAll(world.getServer().getPlayerManager(), cont, releasePos);
-        }
     }
 
 }

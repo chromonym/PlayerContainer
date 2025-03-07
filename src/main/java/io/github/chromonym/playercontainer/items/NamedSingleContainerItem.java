@@ -31,7 +31,7 @@ public class NamedSingleContainerItem<C extends AbstractContainer> extends Simpl
 
     @Override
     public Text getName(ItemStack stack) {
-        if (stack.getItem() instanceof AbstractContainerItem<?> aci) {
+        if (stack.getItem() instanceof ContainerInstanceHolder<?> aci) {
             ContainerInstance<?> ci = aci.getOrMakeContainerInstance(stack, null, true);
             if (ci != null && ci.getPlayerCount(true) != 0) {
                 Set<GameProfile> players = ci.getPlayers(true);

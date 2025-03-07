@@ -3,7 +3,7 @@ package io.github.chromonym.playercontainer.containers;
 import java.util.Iterator;
 import java.util.List;
 
-import io.github.chromonym.playercontainer.items.AbstractContainerItem;
+import io.github.chromonym.playercontainer.items.ContainerInstanceHolder;
 import net.minecraft.block.DispenserBlock;
 import net.minecraft.block.dispenser.FallibleItemDispenserBehavior;
 import net.minecraft.entity.player.PlayerEntity;
@@ -22,7 +22,7 @@ public class ContainerDispenserBehaviour extends FallibleItemDispenserBehavior {
     protected ItemStack dispenseSilently(BlockPointer pointer, ItemStack stack) {
         ServerWorld world = pointer.world();
         BlockPos blockPos = pointer.pos().offset((Direction)pointer.state().get(DispenserBlock.FACING));
-        if (stack.getItem() instanceof AbstractContainerItem aci) {
+        if (stack.getItem() instanceof ContainerInstanceHolder aci) {
             ContainerInstance<?> ci = aci.getOrMakeContainerInstance(stack, world);
             this.setSuccess(tryCapture(world, blockPos, ci));
             if (!this.isSuccess()) {

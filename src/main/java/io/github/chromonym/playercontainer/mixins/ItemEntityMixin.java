@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
-import io.github.chromonym.playercontainer.items.AbstractContainerItem;
+import io.github.chromonym.playercontainer.items.ContainerInstanceHolder;
 import io.github.chromonym.playercontainer.registries.ItemComponents;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.item.ItemStack;
@@ -35,7 +35,7 @@ public class ItemEntityMixin {
     @Inject(method="tick()V", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/ItemEntity;discard()V"))
     public void sanityCheck(CallbackInfo ci) {
         ItemEntity thisIE = ((ItemEntity)(Object)this);
-        if (thisIE.getStack().getItem() instanceof AbstractContainerItem<?> sci && !thisIE.getWorld().isClient()) {
+        if (thisIE.getStack().getItem() instanceof ContainerInstanceHolder<?> sci && !thisIE.getWorld().isClient()) {
             sci.getOrMakeContainerInstance(thisIE.getStack(), thisIE.getWorld()).destroy(thisIE.getServer().getPlayerManager(), thisIE.getBlockPos());
         }
     }
@@ -44,7 +44,7 @@ public class ItemEntityMixin {
     public void trackContainerMovement(PlayerEntity player, CallbackInfo ci) {
         ItemEntity thisIE = (ItemEntity)(Object)this;
         if (this.pickupDelay == 0 && (this.owner == null || this.owner.equals(player.getUuid())) && player.hasR)
-        if (thisIE.getStack().getItem() instanceof AbstractContainerItem<?> sci) {
+        if (thisIE.getStack().getItem() instanceof ContainerInstanceHolder<?> sci) {
             PlayerContainer.LOGGER.info("Attempting to set owner");
             sci.getOrMakeContainerInstance(thisIE.getStack(), player.getWorld()).setOwner(player);
             PlayerContainer.LOGGER.info("Finished attempting to set owner");

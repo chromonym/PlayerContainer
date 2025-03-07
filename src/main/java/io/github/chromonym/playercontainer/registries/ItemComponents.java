@@ -21,11 +21,11 @@ public class ItemComponents {
     public static final ComponentType<String> PLAYER_NAME = Registry.register(
         Registries.DATA_COMPONENT_TYPE,
         PlayerContainer.identifier("name"),
-        ComponentType.<String>builder().codec(Codecs.NON_EMPTY_STRING).build()
+        ComponentType.<String>builder().codec(Codecs.PLAYER_NAME).build()
     );
     public static final ComponentType<Boolean> BREAK_ON_RELEASE = Registry.register(
         Registries.DATA_COMPONENT_TYPE,
-        PlayerContainer.identifier("break_on_release"),
+        PlayerContainer.identifier("fragile"),
         ComponentType.<Boolean>builder().codec(Codec.BOOL).build()
     );
     

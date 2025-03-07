@@ -11,7 +11,7 @@ import java.util.UUID;
 import io.github.chromonym.playercontainer.PlayerContainer;
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
 import io.github.chromonym.playercontainer.containers.SpectatorContainer;
-import io.github.chromonym.playercontainer.items.AbstractContainerItem;
+import io.github.chromonym.playercontainer.items.ContainerInstanceHolder;
 import io.github.chromonym.playercontainer.networking.ContainerInstancesPayload;
 import io.github.chromonym.playercontainer.networking.ContainerPersistentState;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
@@ -99,7 +99,7 @@ public class Events {
                 }
                 for(int i = 0; i < inv.size(); ++i) {
                     ItemStack stack = inv.getStack(i);
-                    if (!stack.isEmpty() && stack.getItem() instanceof AbstractContainerItem<?> containerItem) {
+                    if (!stack.isEmpty() && stack.getItem() instanceof ContainerInstanceHolder<?> containerItem) {
                         containerItem.getOrMakeContainerInstance(stack, blockEntity.getWorld()).setOwner(blockEntity);
                     }
                 }

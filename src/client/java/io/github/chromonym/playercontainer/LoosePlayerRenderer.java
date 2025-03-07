@@ -1,7 +1,6 @@
 package io.github.chromonym.playercontainer;
 
 import java.util.Set;
-import java.util.UUID;
 
 import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
@@ -9,7 +8,7 @@ import org.joml.Quaternionf;
 import com.mojang.authlib.GameProfile;
 
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
-import io.github.chromonym.playercontainer.items.AbstractContainerItem;
+import io.github.chromonym.playercontainer.items.ContainerInstanceHolder;
 import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry.DynamicItemRenderer;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -24,7 +23,7 @@ public class LoosePlayerRenderer implements DynamicItemRenderer {
     public void render(ItemStack stack, ModelTransformationMode mode, MatrixStack matrices,
             VertexConsumerProvider vertexConsumers, int light, int overlay) {
         MinecraftClient mci = MinecraftClient.getInstance();
-        if (stack.getItem() instanceof AbstractContainerItem aci) {
+        if (stack.getItem() instanceof ContainerInstanceHolder aci) {
             ContainerInstance<?> ci = aci.getOrMakeContainerInstance(stack, mci.world, true);
             if (ci != null) {
                 Set<GameProfile> players = ci.getPlayers(true);

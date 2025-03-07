@@ -5,7 +5,6 @@ import java.util.UUID;
 
 import com.mojang.authlib.GameProfile;
 
-import io.github.chromonym.playercontainer.PlayerContainer;
 import io.github.chromonym.playercontainer.containers.AbstractContainer;
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
 import io.github.chromonym.playercontainer.registries.ItemComponents;
@@ -19,53 +18,15 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.world.World;
 
-public class AbstractContainerItem<C extends AbstractContainer> extends Item {
+public class AbstractContainerItem<C extends AbstractContainer> extends Item implements ContainerInstanceHolder<C> {
+
+    // I KNOW THIS IS BAD CODE (fix later:tm:) BUT SOME OF THIS IS COPIED IN CAGEBLOCKITEM
     
     private final C container;
 
     public AbstractContainerItem(C container, Settings settings) {
         super(settings.maxCount(1));
         this.container = container;
-    }
-
-    public final ContainerInstance<?> getOrMakeContainerInstance(ItemStack stack, World world) {
-        return getOrMakeContainerInstance(stack, world, false);
-    }
-
-    public final ContainerInstance<?> getOrMakeContainerInstance(ItemStack stack, World world, boolean allowClient) {
-        // check if this item has an id - if not, generate one and add a new relevant container (postprocesscomponents)
-        // check if said id is stored - if not, create a new container with the relevant id.
-        // only returns the containerInstance (doesn't create one if missing) if world is client
-        if (allowClient || !world.isClient()) {
-            if (stack.getItem() instanceof AbstractContainerItem) {
-                UUID id = stack.get(ItemComponents.CONTAINER_ID);
-                if (id == null) {
-                    if (allowClient || world.isClient()) {
-                        return null;
-                    } else {
-                        PlayerContainer.LOGGER.info("Container stack ID not yet created, adding it to the tracked list");
-                        ContainerInstance<C> cont = new ContainerInstance<C>(container);
-                        stack.set(ItemComponents.CONTAINER_ID, cont.getID());
-                        PlayerContainer.sendCIPtoAll(world.getServer().getPlayerManager());
-                        return cont;
-                    }
-                } if (!ContainerInstance.containers.containsKey(id)) {
-                    if (allowClient || world.isClient()) {
-                        return null;
-                    } else {
-                        PlayerContainer.LOGGER.info("Container stack ID not yet loaded, adding it to the tracked list");
-                        ContainerInstance<C> cont = new ContainerInstance<C>(container, id);
-                        PlayerContainer.sendCIPtoAll(world.getServer().getPlayerManager());
-                        return cont;
-                    }
-                } else {
-                    return ContainerInstance.containers.get(id);
-                }
-            } else {
-                return null;
-            }
-        }
-        return null;
     }
 
     @Override
@@ -91,7 +52,7 @@ public class AbstractContainerItem<C extends AbstractContainer> extends Item {
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
         UUID cont = stack.get(ItemComponents.CONTAINER_ID);
-        if (stack.getItem() instanceof AbstractContainerItem<?> aci) {
+        if (stack.getItem() instanceof ContainerInstanceHolder<?> aci) {
             ContainerInstance<?> ci = aci.getOrMakeContainerInstance(stack, null, true);
             if (ci != null && ci.getPlayerCount(true) != 0) {
                 tooltip.add(Text.translatable("tooltip.playercontainer.contains").formatted(Formatting.GRAY));
@@ -108,6 +69,11 @@ public class AbstractContainerItem<C extends AbstractContainer> extends Item {
     @Override
     public boolean hasGlint(ItemStack stack) {
         return stack.isOf(Items.debugContainer) || super.hasGlint(stack);
+    }
+
+    @Override
+    public C getContainer() {
+        return container;
     }
 
 }

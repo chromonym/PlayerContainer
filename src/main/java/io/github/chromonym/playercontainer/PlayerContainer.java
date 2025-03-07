@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import io.github.chromonym.playercontainer.registries.*;
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
-import io.github.chromonym.playercontainer.items.AbstractContainerItem;
+import io.github.chromonym.playercontainer.items.ContainerInstanceHolder;
 import io.github.chromonym.playercontainer.networking.ContainerInstancesPayload;
 
 public class PlayerContainer implements ModInitializer {
@@ -39,6 +39,8 @@ public class PlayerContainer implements ModInitializer {
 
 		PayloadTypeRegistry.playS2C().register(ContainerInstancesPayload.ID, ContainerInstancesPayload.PACKET_CODEC);
 
+		Blocks.initialize();
+		BlockEntities.initialize();
 		ItemComponents.initialize();
 		Items.initialize();
 		Containers.initialize();
@@ -83,13 +85,13 @@ public class PlayerContainer implements ModInitializer {
 						boolean found = false;
 						if (player.currentScreenHandler != null) {
 							ItemStack stack = player.currentScreenHandler.getCursorStack();
-							if (!stack.isEmpty() && stack.getItem() instanceof AbstractContainerItem<?>) {
+							if (!stack.isEmpty() && stack.getItem() instanceof ContainerInstanceHolder<?>) {
 								found = true; // pwease don't destroy it :(
 							}
 						}
 						for(int i = 0; i < inv.size(); ++i) {
 							ItemStack stack = inv.getStack(i);
-							if (!stack.isEmpty() && stack.getItem() instanceof AbstractContainerItem<?> containerItem) {
+							if (!stack.isEmpty() && stack.getItem() instanceof ContainerInstanceHolder<?> containerItem) {
 								ContainerInstance<?> checkCont = containerItem.getOrMakeContainerInstance(stack, player.getWorld(), true);
 								if (checkCont != null && checkCont.getID() == ci.getID()) {
 									found = true;

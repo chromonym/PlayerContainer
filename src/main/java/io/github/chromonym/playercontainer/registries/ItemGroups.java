@@ -18,6 +18,7 @@ public class ItemGroups {
             entries.add(Items.largeContainer);
             entries.add(Items.hugeContainer);
             entries.add(Items.loosePlayer);
+            entries.add(Items.cageBlock);
             entries.add(Items.singularityContainer);
             entries.add(Items.debugContainer); // TODO remove in final
         })
