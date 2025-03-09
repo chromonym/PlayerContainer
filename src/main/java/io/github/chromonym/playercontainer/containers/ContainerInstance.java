@@ -18,6 +18,7 @@ import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import io.github.chromonym.blockentities.CageBlockEntity;
 import io.github.chromonym.playercontainer.PlayerContainer;
 import io.github.chromonym.playercontainer.registries.Containers;
 import net.minecraft.block.entity.BlockEntity;
@@ -48,7 +49,8 @@ public class ContainerInstance<C extends AbstractContainer> {
         instance -> instance.group(
             Containers.REGISTRY.getCodec().fieldOf("container").forGetter(ContainerInstance::getContainer),
             Uuids.CODEC.fieldOf("uuid").forGetter(ContainerInstance::getID),
-            Codecs.GAME_PROFILE_WITH_PROPERTIES.listOf().fieldOf("players").forGetter(ContainerInstance::getPlayersForCodec)
+            Codecs.GAME_PROFILE_WITH_PROPERTIES.listOf().fieldOf("players").forGetter(ContainerInstance::getPlayersForCodec),
+            BlockPos.CODEC.fieldOf("cachedPos").forGetter(ContainerInstance::getBlockPos)
         ).apply(instance, ContainerInstance::new)
     );
 
@@ -63,6 +65,7 @@ public class ContainerInstance<C extends AbstractContainer> {
     private UUID ID;
     private Entity ownerEntity;
     private BlockEntity ownerBlockEntity;
+    private BlockPos cachedBlockPos;
     public Set<GameProfile> playerCache = new HashSet<GameProfile>();
 
     public ContainerInstance(C container) {
@@ -74,9 +77,10 @@ public class ContainerInstance<C extends AbstractContainer> {
         this.playerCache = playerCache;
     }
 
-    public ContainerInstance(C container, UUID id, List<GameProfile> players) {
+    public ContainerInstance(C container, UUID id, List<GameProfile> players, BlockPos cachedPos) {
         this(container, id);
         this.playerCache = new HashSet<GameProfile>(players);
+        this.cachedBlockPos = cachedPos;
     }
 
     public ContainerInstance(C container, UUID id) {
@@ -184,14 +188,26 @@ public class ContainerInstance<C extends AbstractContainer> {
     public BlockPos getBlockPos() {
         if (ownerEntity != null) {
             return ownerEntity.getBlockPos();
-        } else {
+        } else if (ownerEntity != null) {
             return ownerBlockEntity.getPos();
+        } else {
+            return cachedBlockPos;
+        }
+    }
+
+    public World getWorld() {
+        if (ownerEntity != null) {
+            return ownerEntity.getWorld();
+        } else {
+            return ownerBlockEntity.getWorld();
         }
     }
 
     public static void checkRecaptureDecapture(World world) {
         Map<PlayerEntity, ContainerInstance<?>> recaptured = new HashMap<PlayerEntity, ContainerInstance<?>>();
         Map<PlayerEntity, ContainerInstance<?>> released = new HashMap<PlayerEntity, ContainerInstance<?>>();
+        Map<PlayerEntity, ContainerInstance<?>> caged = new HashMap<PlayerEntity, ContainerInstance<?>>();
+        Map<PlayerEntity, ContainerInstance<?>> uncaged = new HashMap<PlayerEntity, ContainerInstance<?>>();
         for (Entry<UUID, UUID> entry : playersToRecapture.entrySet()) {
             PlayerEntity player = world.getServer().getPlayerManager().getPlayer(entry.getKey());
             if (player != null && !disconnectedPlayers.contains(player.getUuid())) {
@@ -217,7 +233,7 @@ public class ContainerInstance<C extends AbstractContainer> {
         }
         for (Entry<PlayerEntity,ContainerInstance<?>> entry : recaptured.entrySet()) {
             if (!entry.getValue().capture(entry.getKey(), true)) {
-                entry.getValue().release(entry.getKey(), false, entry.getValue().getBlockPos());
+                entry.getValue().release(entry.getKey(), false, entry.getValue().getBlockPos(), false);
             }
             ContainerInstance.playersToRecapture.remove(entry.getKey().getUuid());
         }
@@ -246,8 +262,50 @@ public class ContainerInstance<C extends AbstractContainer> {
         }
         for (Entry<PlayerEntity,ContainerInstance<?>> entry : released.entrySet()) {
             ContainerInstance.playersToRelease.remove(entry.getKey().getUuid());
-            entry.getValue().release(entry.getKey(), false, entry.getValue().getBlockPos());
+            entry.getValue().release(entry.getKey(), false, entry.getValue().getBlockPos(), false);
         }
+
+        for (Entry<UUID, UUID> entry : CageSpectatorContainer.playersToCage.entrySet()) {
+            PlayerEntity player = world.getServer().getPlayerManager().getPlayer(entry.getKey());
+            if (player != null) {
+                ContainerInstance<?> cont = containers.get(entry.getValue());
+                if (cont != null && cont.getContainer() instanceof CageSpectatorContainer) {
+                    cont.getOwner().ifRight(blockEntity -> {
+                        if (blockEntity != null && blockEntity instanceof CageBlockEntity) {
+                            BlockPos pos = blockEntity.getPos();
+                            if (world.isChunkLoaded(ChunkSectionPos.getSectionCoord(pos.getX()), ChunkSectionPos.getSectionCoord(pos.getZ()))) {
+                                caged.put(player, cont);
+                            }
+                        }
+                    });
+                }
+            }
+        }
+        for (Entry<PlayerEntity,ContainerInstance<?>> entry : caged.entrySet()) {
+            CageSpectatorContainer.playersToCage.remove(entry.getKey().getUuid());
+            if (entry.getKey() instanceof ServerPlayerEntity spe) {
+                entry.getValue().getContainer().onPlaceBlock(entry.getValue(), spe.getServerWorld(), entry.getValue().getBlockPos(), spe.getServer().getPlayerManager());
+            }
+        }
+
+        for (Entry<UUID, UUID> entry : CageSpectatorContainer.playersToUncage.entrySet()) {
+            PlayerEntity player = world.getServer().getPlayerManager().getPlayer(entry.getKey());
+            if (player != null) {
+                ContainerInstance<?> cont = containers.get(entry.getValue());
+                uncaged.put(player, cont);
+            }
+        }
+        for (Entry<PlayerEntity,ContainerInstance<?>> entry : uncaged.entrySet()) {
+            CageSpectatorContainer.playersToUncage.remove(entry.getKey().getUuid());
+            if (entry.getKey() instanceof ServerPlayerEntity spe) {
+                CageSpectatorContainer.uncagePlayer(spe);
+            }
+        }
+
+        if (recaptured.size() > 0 || released.size() > 0) {
+            PlayerContainer.sendCIPtoAll(world.getServer().getPlayerManager());
+        }
+
     }
 
     public static void releasePlayer(PlayerEntity player) {
@@ -256,7 +314,7 @@ public class ContainerInstance<C extends AbstractContainer> {
                 UUID contID = players.get(profile);
                 if (contID != null && containers.containsKey(contID)) {
                     ContainerInstance<?> ci = containers.get(contID);
-                    if (ci != null) { ci.release(player, false, ci.getBlockPos()); }
+                    if (ci != null) { ci.release(player, false, ci.getBlockPos(), true); }
                 } else {
                     PlayerContainer.LOGGER.warn("COULD NOT RELEASE PLAYER");
                 }
@@ -273,12 +331,13 @@ public class ContainerInstance<C extends AbstractContainer> {
         if (entity != ownerEntity) {
             if (entity instanceof PlayerEntity pe) {
                 if (getPlayers().contains(pe.getGameProfile())) {
-                    release(pe, false, ownerEntity.getBlockPos());
+                    release(pe, false, ownerEntity.getBlockPos(), true);
                 }
             }
             container.onOwnerChange(getOwner(), Either.left(entity), this);
             ownerBlockEntity = null;
             ownerEntity = entity;
+            cachedBlockPos = entity.getBlockPos();
         }
     }
 
@@ -287,6 +346,7 @@ public class ContainerInstance<C extends AbstractContainer> {
             container.onOwnerChange(getOwner(), Either.right(blockEntity), this);
             ownerBlockEntity = blockEntity;
             ownerEntity = null;
+            cachedBlockPos = blockEntity.getPos();
         }
     }
 
@@ -296,15 +356,18 @@ public class ContainerInstance<C extends AbstractContainer> {
         return container.capture(player, this, temp);
     }
 
-    public void release(PlayerEntity player, boolean temp, BlockPos pos) {
-        container.release(player, this, temp, pos);
+    public void release(PlayerEntity player, boolean temp, BlockPos pos, boolean doSend) {
+        cachedBlockPos = pos;
+        container.release(player, this, temp, pos, doSend);
     }
 
     public void releaseAll(PlayerManager players, boolean temp, BlockPos pos) {
+        cachedBlockPos = pos;
         container.releaseAll(players, this, temp, pos);
     }
 
     public void destroy(PlayerManager players, BlockPos pos) {
+        cachedBlockPos = pos;
         container.destroy(players, this, pos);
         containers.remove(ID);
         PlayerContainer.sendCIPtoAll(players);

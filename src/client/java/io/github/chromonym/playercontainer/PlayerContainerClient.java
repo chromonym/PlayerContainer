@@ -69,6 +69,7 @@ public class PlayerContainerClient implements ClientModInitializer {
 		ModelPredicateProviderRegistry.register(Items.hugeContainer, Identifier.ofVanilla("captured"), captureCountProvider);
 		ModelPredicateProviderRegistry.register(Items.singularityContainer, Identifier.ofVanilla("captured"), infiniteCaptureCountProvider);
 		ModelPredicateProviderRegistry.register(Items.loosePlayer, Identifier.ofVanilla("captured"), captureCountProvider);
+		ModelPredicateProviderRegistry.register(Items.cageBlock, Identifier.ofVanilla("captured"), captureCountProvider);
 		BuiltinItemRendererRegistry.INSTANCE.register(Items.loosePlayer, new LoosePlayerRenderer());
 		BlockRenderLayerMap.INSTANCE.putBlock(Blocks.CAGE_BLOCK, RenderLayer.getCutout());
 	}

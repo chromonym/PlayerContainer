@@ -136,7 +136,9 @@ public class CageBlockEntity extends BlockEntity implements ContainerInstanceHol
         if (ci != null && ci.getPlayerCount() > 0) {
             ItemStack toReturn = getLoosePlayer();
             this.containerId = null;
-            // TODO run "break block" on the container here (convert to spectator)
+            if (!this.getWorld().isClient) {
+                container.onBreakBlock(ci, this.getWorld().getServer().getPlayerManager());
+            }
             ContainerInstance.containers.remove(containerId);
             Items.loosePlayer.getOrMakeContainerInstance(toReturn, world); // hopefully this doesn't totally break everything :3
             getOrMakeContainerInstance(this, world);

@@ -10,6 +10,7 @@ import com.google.common.collect.HashBiMap;
 import com.mojang.authlib.GameProfile;
 
 import io.github.chromonym.playercontainer.PlayerContainer;
+import io.github.chromonym.playercontainer.containers.CageSpectatorContainer;
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
@@ -29,6 +30,8 @@ public class ContainerPersistentState extends PersistentState {
     public Map<GameProfile, UUID> players = new HashMap<GameProfile, UUID>(); // PLAYERS TO CONTAINERS!!
     public Map<UUID, UUID> playersToRecapture = new HashMap<UUID, UUID>(); // players that need to be recaptured by a given container when next possible
     public Map<UUID, UUID> playersToRelease = new HashMap<UUID, UUID>(); // players that need to be released when next possible
+    public Map<UUID, UUID> playersToCage = new HashMap<UUID, UUID>();
+    public Map<UUID, UUID> playersToUncage = new HashMap<UUID, UUID>();
 
     /*
      *"modid": {
@@ -84,6 +87,18 @@ public class ContainerPersistentState extends PersistentState {
         }
         newNbt.put("playersToRelease", nbtRelease);
 
+        NbtCompound nbtCage = new NbtCompound();
+        for (Entry<UUID, UUID> entry : playersToCage.entrySet()) {
+            nbtCage.putUuid(entry.getKey().toString(), entry.getValue());
+        }
+        newNbt.put("playersToCage", nbtCage);
+
+        NbtCompound nbtUncage = new NbtCompound();
+        for (Entry<UUID, UUID> entry : playersToUncage.entrySet()) {
+            nbtUncage.putUuid(entry.getKey().toString(), entry.getValue());
+        }
+        newNbt.put("playersToUncage", nbtUncage);
+
         nbt.put(PlayerContainer.MOD_ID, newNbt);
         return nbt;
     }
@@ -118,6 +133,16 @@ public class ContainerPersistentState extends PersistentState {
             state.playersToRelease.put(UUID.fromString(key), nbtRelease.getUuid(key));
         });
 
+        NbtCompound nbtCage = newNbt.getCompound("playersToCage");
+        nbtCage.getKeys().forEach(key -> {
+            state.playersToCage.put(UUID.fromString(key), nbtCage.getUuid(key));
+        });
+
+        NbtCompound nbtUncage = newNbt.getCompound("playersToUncage");
+        nbtUncage.getKeys().forEach(key -> {
+            state.playersToUncage.put(UUID.fromString(key), nbtUncage.getUuid(key));
+        });
+
         return state;
     }
 
@@ -139,10 +164,8 @@ public class ContainerPersistentState extends PersistentState {
         this.players = new HashMap<GameProfile, UUID>(ContainerInstance.players);
         this.playersToRecapture = new HashMap<UUID,UUID>(ContainerInstance.playersToRecapture);
         this.playersToRelease = new HashMap<UUID,UUID>(ContainerInstance.playersToRelease);
-        PlayerContainer.LOGGER.info(containers.toString());
-        PlayerContainer.LOGGER.info(players.toString());
-        PlayerContainer.LOGGER.info(playersToRecapture.toString());
-        PlayerContainer.LOGGER.info(playersToRelease.toString());
+        this.playersToCage = new HashMap<UUID,UUID>(CageSpectatorContainer.playersToCage);
+        this.playersToUncage = new HashMap<UUID,UUID>(CageSpectatorContainer.playersToUncage);
         this.markDirty();
     }
 
@@ -152,9 +175,7 @@ public class ContainerPersistentState extends PersistentState {
         ContainerInstance.players = new HashMap<GameProfile, UUID>(this.players);
         ContainerInstance.playersToRecapture = new HashMap<UUID, UUID>(this.playersToRecapture);
         ContainerInstance.playersToRelease = new HashMap<UUID, UUID>(this.playersToRelease);
-        PlayerContainer.LOGGER.info(ContainerInstance.containers.toString());
-        PlayerContainer.LOGGER.info(ContainerInstance.players.toString());
-        PlayerContainer.LOGGER.info(ContainerInstance.playersToRecapture.toString());
-        PlayerContainer.LOGGER.info(ContainerInstance.playersToRelease.toString());
+        CageSpectatorContainer.playersToCage = new HashMap<UUID, UUID>(this.playersToCage);
+        CageSpectatorContainer.playersToUncage = new HashMap<UUID, UUID>(this.playersToUncage);
     }
 }

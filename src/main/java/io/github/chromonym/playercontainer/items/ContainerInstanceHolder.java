@@ -51,7 +51,9 @@ public interface ContainerInstanceHolder<C extends AbstractContainer> {
         if (allowClient || !world.isClient()) {
             if (blockEntity instanceof CageBlockEntity cage) {
                 UUID id = cage.getContainerId();
-                return getOrMakeContainerInstance(id, world, (uid) -> {cage.setContainerId(uid);}, allowClient);
+                ContainerInstance<?> ci = getOrMakeContainerInstance(id, world, (uid) -> {cage.setContainerId(uid);}, allowClient);
+                ci.setOwner(blockEntity);
+                return ci;
             } else {
                 return null;
             }

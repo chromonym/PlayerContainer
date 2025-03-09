@@ -22,7 +22,7 @@ public class Commands {
                     }
                     return 1;
                 })
-            .then(argument("player", EntityArgumentType.player())
+            .then(argument("player", EntityArgumentType.player()).requires(source -> source.hasPermissionLevel(2))
                 .executes(context -> {
                     ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
                     ContainerInstance.releasePlayer(player);
@@ -30,14 +30,14 @@ public class Commands {
                     return 1;
                 }))
         ).then(
-            literal("update")
+            literal("update").requires(source -> source.hasPermissionLevel(2))
                 .executes(context -> {
                     PlayerContainer.sendCIPtoAll(context.getSource().getServer().getPlayerManager());
                     context.getSource().sendFeedback(() -> Text.literal("Sent container data to all online players"), false);
                     return 1;
                 })
         ).then(
-            literal("clean")
+            literal("clean").requires(source -> source.hasPermissionLevel(2))
                 .executes(context -> {
                     PlayerContainer.cleanContainers(context.getSource().getServer().getPlayerManager());
                     context.getSource().sendFeedback(() -> Text.literal("Cleaned empty containers"), false);

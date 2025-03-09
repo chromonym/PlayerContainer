@@ -3,6 +3,7 @@ package io.github.chromonym.playercontainer.blocks;
 import com.mojang.serialization.MapCodec;
 
 import io.github.chromonym.blockentities.CageBlockEntity;
+import io.github.chromonym.playercontainer.containers.CageSpectatorContainer;
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
 import io.github.chromonym.playercontainer.items.CageBlockItem;
 import io.github.chromonym.playercontainer.items.ContainerInstanceHolder;
@@ -19,6 +20,7 @@ import net.minecraft.block.piston.PistonBehavior;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager.Builder;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.util.ActionResult;
@@ -57,6 +59,7 @@ public class CageBlock extends BlockWithEntity {
             if (itemStack.getItem() instanceof CageBlockItem cbi) {
                 ContainerInstance<?> ci = cbi.getOrMakeContainerInstance(itemStack, world);
                 ci.setOwner(world.getBlockEntity(pos));
+                ci.getContainer().onPlaceBlock(ci, (ServerWorld)world, pos, world.getServer().getPlayerManager());
             }
         }
         super.onPlaced(world, pos, state, placer, itemStack);
@@ -64,9 +67,10 @@ public class CageBlock extends BlockWithEntity {
 
     @Override
     public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        if (player.isCreative() && !world.isClient) {
-            if (world.getBlockEntity(pos) instanceof CageBlockEntity cbe && world.isClient) {
-                ContainerInstance<?> ci = cbe.getOrMakeContainerInstance(cbe, world);
+        if (world.getBlockEntity(pos) instanceof CageBlockEntity cbe && !world.isClient) {
+            ContainerInstance<?> ci = cbe.getOrMakeContainerInstance(cbe, world);
+            CageSpectatorContainer.onBreakBlock(ci, world.getServer().getPlayerManager());
+            if (player.isCreative()) {
                 ci.destroy(world.getServer().getPlayerManager(), pos);
             }
         }
@@ -90,7 +94,10 @@ public class CageBlock extends BlockWithEntity {
 
     @Override
     protected VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-        return cageShape;
+        if (state.get(CAPTURED)) {
+            return cageShape;
+        }
+        return VoxelShapes.fullCube();
     }
 
     @Override

@@ -34,6 +34,12 @@ public class AbstractContainerItem<C extends AbstractContainer> extends Item imp
         ContainerInstance<?> cont = getOrMakeContainerInstance(stack, world);
         if (cont != null) {
             cont.setOwner(entity);
+            if (stack.getOrDefault(ItemComponents.BREAK_ON_RELEASE, false) && cont.getPlayerCount() == 0) {
+                if (!world.isClient) {
+                    cont.destroy(world.getServer().getPlayerManager(), cont.getBlockPos()); // shouldn't do anything as playercount == 0 but better safe than sorry
+                }
+                stack.setCount(0);
+            }
         }
         super.inventoryTick(stack, world, entity, slot, selected);
     }
@@ -60,6 +66,9 @@ public class AbstractContainerItem<C extends AbstractContainer> extends Item imp
                     tooltip.add(Text.literal("- " + player.getName()).formatted(Formatting.GRAY));
                 }
 			}
+            if (stack.getOrDefault(ItemComponents.BREAK_ON_RELEASE, false)) {
+                tooltip.add(Text.translatable("tooltip.playercontainer.empty_fragile").formatted(Formatting.RED));
+            }
         }
         if (cont != null && type.isAdvanced()) {
             tooltip.add(Text.literal("ID: "+cont.toString()).formatted(Formatting.DARK_GRAY));

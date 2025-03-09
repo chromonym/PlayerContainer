@@ -15,6 +15,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 
 public abstract class AbstractContainer {
@@ -112,16 +113,20 @@ public abstract class AbstractContainer {
     }
     
     public final void release(PlayerEntity player, ContainerInstance<?> ci, boolean recaptureLater, BlockPos pos) {
-        release(player.getGameProfile(), player.getServer().getPlayerManager(), ci, recaptureLater, pos);
+        release(player.getGameProfile(), player.getServer().getPlayerManager(), ci, recaptureLater, pos, true);
     }
 
-    public final void release(GameProfile profile, PlayerManager players, ContainerInstance<?> ci, boolean recaptureLater, BlockPos pos) {
+    public final void release(PlayerEntity player, ContainerInstance<?> ci, boolean recaptureLater, BlockPos pos, boolean doSend) {
+        release(player.getGameProfile(), player.getServer().getPlayerManager(), ci, recaptureLater, pos, doSend);
+    }
+
+    public final void release(GameProfile profile, PlayerManager players, ContainerInstance<?> ci, boolean recaptureLater, BlockPos pos, boolean doSend) {
         PlayerEntity player = players.getPlayer(profile.getId());
         if (recaptureLater) { // if the player has just logged off or container is unavailable (not actually released)
             ContainerInstance.playersToRecapture.put(profile.getId(), ci.getID()); // add them to recapture list
             if (ContainerInstance.players.containsKey(profile) && player != null) { // remove them from this container temporarily
                 onTempRelease(player, ci, pos);
-                if (!player.getWorld().isClient()) {
+                if (!player.getWorld().isClient() && doSend) {
                     PlayerContainer.sendCIPtoAll(player.getServer().getPlayerManager());
                 }
             }
@@ -158,8 +163,9 @@ public abstract class AbstractContainer {
             //release(profile, players, ci, recaptureLater);
         }
         for (GameProfile profile : toRelease) {
-            release(profile, players, ci, recaptureLater, pos);
+            release(profile, players, ci, recaptureLater, pos, false);
         }
+        PlayerContainer.sendCIPtoAll(ci.getWorld().getServer().getPlayerManager());
         /*if (!recaptureLater) {
             for (Entry<UUID,UUID> entry : ContainerInstance.playersToRecapture.entrySet()) {
                 if (entry.getValue() == ci.getID()) {
@@ -197,4 +203,9 @@ public abstract class AbstractContainer {
 
     public abstract void onPlayerTick(ServerPlayerEntity player, ContainerInstance<?> ci);
     // Ran every tick in the playerTick function for all captured players
+
+
+    // Methods that I'm putting here so I don't have to do checks for if a container is a CageSpectatorContainer just to run them
+
+    public void onPlaceBlock(ContainerInstance<?> ci, ServerWorld serverWorld, BlockPos pos, PlayerManager players) {}
 }

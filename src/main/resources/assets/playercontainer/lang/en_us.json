@@ -14,5 +14,6 @@
 
     "itemGroup.playercontainer.playercontainer": "Player Containers",
     
-    "tooltip.playercontainer.contains": "Contains:"
+    "tooltip.playercontainer.contains": "Contains:",
+    "tooltip.playercontainer.empty_fragile": "Empty fragile container! Will be destroyed when moved to a player's inventory!"
 }
