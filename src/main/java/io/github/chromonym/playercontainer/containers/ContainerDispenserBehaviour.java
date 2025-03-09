@@ -28,11 +28,14 @@ public class ContainerDispenserBehaviour extends FallibleItemDispenserBehavior {
             this.setSuccess(tryCapture(world, blockPos, ci));
             if (!this.isSuccess()) {
                 this.setSuccess(tryRelease(world, blockPos, ci));
-            } else if (stack.getOrDefault(ItemComponents.BREAK_ON_RELEASE, false)) {
-                if (!world.isClient) {ci.destroy(world.getServer().getPlayerManager(), blockPos);}
-                return ItemStack.EMPTY;
             }
             if (this.isSuccess()) {
+                if (stack.getOrDefault(ItemComponents.BREAK_ON_RELEASE, false)) {
+                    if (!world.isClient) {
+                        ci.destroy(world.getServer().getPlayerManager(), blockPos);
+                    }
+                    return ItemStack.EMPTY;
+                }
                 return stack;
             }
         }
@@ -55,6 +58,6 @@ public class ContainerDispenserBehaviour extends FallibleItemDispenserBehavior {
         boolean bl = ci.getPlayerCount() > 0;
         ci.releaseAll(world.getServer().getPlayerManager(), false, pos);
         return bl;
-    } // TODO fix this
+    }
     
 }

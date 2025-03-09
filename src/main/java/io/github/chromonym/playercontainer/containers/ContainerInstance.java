@@ -305,9 +305,9 @@ public class ContainerInstance<C extends AbstractContainer> {
     }
 
     public void destroy(PlayerManager players, BlockPos pos) {
+        container.destroy(players, this, pos);
         containers.remove(ID);
         PlayerContainer.sendCIPtoAll(players);
-        container.destroy(players, this, pos);
     }
 
     public void onPlayerTick(ServerPlayerEntity player) {

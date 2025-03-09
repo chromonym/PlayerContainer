@@ -84,7 +84,6 @@ public class LoosePlayerRenderer implements DynamicItemRenderer {
                 return;
             }
         }
-        // TODO: add fallback item rendering here (also add empty texture - the model already exists)
     }
     
 }

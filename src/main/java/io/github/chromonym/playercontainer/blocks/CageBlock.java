@@ -65,7 +65,7 @@ public class CageBlock extends BlockWithEntity {
     @Override
     public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
         if (player.isCreative() && !world.isClient) {
-            if (world.getBlockEntity(pos) instanceof CageBlockEntity cbe) {
+            if (world.getBlockEntity(pos) instanceof CageBlockEntity cbe && world.isClient) {
                 ContainerInstance<?> ci = cbe.getOrMakeContainerInstance(cbe, world);
                 ci.destroy(world.getServer().getPlayerManager(), pos);
             }
