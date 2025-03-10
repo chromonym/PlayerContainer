@@ -75,7 +75,7 @@ public class Events {
                 // player is in a container
                 ContainerInstance<?> ci = ContainerInstance.containers.get(ContainerInstance.players.get(player.getGameProfile())); // temporarily release that player
                 if (ci != null) {
-                    ci.release(player, true, ci.getBlockPos(), true);
+                    ci.release(player, false, ci.getBlockPos(), true); // FULL RELEASE TEMPORARY FOR BC25 VERSION!!
                 }
             }
 		});

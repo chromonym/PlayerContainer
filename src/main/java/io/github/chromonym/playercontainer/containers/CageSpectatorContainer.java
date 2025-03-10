@@ -10,6 +10,7 @@ import com.mojang.authlib.GameProfile;
 
 import io.github.chromonym.blockentities.CageBlockEntity;
 import io.github.chromonym.playercontainer.PlayerContainer;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.attribute.EntityAttributeModifier.Operation;
@@ -59,7 +60,7 @@ public class CageSpectatorContainer extends SpectatorContainer {
         serverPlayer.changeGameMode(GameMode.ADVENTURE);
     }
 
-    public static void onBreakBlock(ContainerInstance<?> ci, PlayerManager players) {
+    public static void onBreakBlock(ContainerInstance<?> ci, PlayerManager players, Entity tempOwner) {
         Set<GameProfile> offlinePlayers = new HashSet<GameProfile>();
         ci.getPlayers().forEach(profile -> {
             PlayerEntity player = players.getPlayer(profile.getId());

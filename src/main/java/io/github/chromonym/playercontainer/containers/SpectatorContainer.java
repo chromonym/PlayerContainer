@@ -137,7 +137,8 @@ public class SpectatorContainer extends AbstractContainer {
                     }
                 }
             }).ifRight(blockEntity -> {
-                if (blockEntity != null && blockEntity.getWorld().getBlockEntity(blockEntity.getPos()) != null && blockEntity.getWorld().getBlockEntity(blockEntity.getPos()).getType() == blockEntity.getType()) {
+                if (blockEntity != null) {
+                    // && blockEntity.getWorld().getBlockEntity(blockEntity.getPos()) != null && blockEntity.getWorld().getBlockEntity(blockEntity.getPos()).getType() == blockEntity.getType()
                     if (player.getCameraEntity() != null && player.getCameraEntity() != player) {
                         player.setCameraEntity(null);
                         player.teleportTo(new TeleportTarget((ServerWorld)blockEntity.getWorld(), blockEntity.getPos().toCenterPos().add(0, -player.getEyeHeight(player.getPose()), 0), Vec3d.ZERO, player.getYaw(), player.getPitch(), blockEntity.getWorld() == player.getWorld() ? TeleportTarget.NO_OP : TeleportTarget.SEND_TRAVEL_THROUGH_PORTAL_PACKET));
