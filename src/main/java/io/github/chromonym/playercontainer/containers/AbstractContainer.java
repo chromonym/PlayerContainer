@@ -9,6 +9,8 @@ import java.util.Map.Entry;
 import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.util.Either;
 
+import dev.doublekekse.area_lib.Area;
+import dev.doublekekse.area_lib.AreaLib;
 import io.github.chromonym.playercontainer.PlayerContainer;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
@@ -42,6 +44,10 @@ public abstract class AbstractContainer {
 
     public final boolean capture(PlayerEntity player, ContainerInstance<?> ci, boolean recapturing) {
         recapturing = false; // BC25 removing temp releases
+        Area validArea = AreaLib.getServerArea(player.getServer(), PlayerContainer.VALID_AREA);
+        if (player.getWorld().getGameRules().getBoolean(PlayerContainer.RESTRICT_TO_BOOTH) && !(validArea != null && validArea.contains(player) && validArea.contains(player.getWorld(), ci.getBlockPos().toCenterPos()))) {
+            return false;
+        }
         Optional<Entity> thisOwner = ci.getOwner().left();
         GameProfile toRemove = null;
         for (Entry<GameProfile,UUID> prof : ContainerInstance.players.entrySet()) {

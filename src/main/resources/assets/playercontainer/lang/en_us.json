@@ -19,5 +19,7 @@
     "tooltip.playercontainer.empty_fragile": "Empty fragile container! Will be destroyed when moved to a player's inventory!",
 
     "category.playercontainer": "Player Containers",
-    "key.playercontainer.release": "Release"
+    "key.playercontainer.release": "Release",
+
+    "gamerule.playercontainer:restrictToBooth": "Only allow player containers in set areas"
 }

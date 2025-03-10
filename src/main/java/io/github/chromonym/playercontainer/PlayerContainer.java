@@ -1,6 +1,8 @@
 package io.github.chromonym.playercontainer;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
+import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
@@ -9,6 +11,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
+import net.minecraft.world.GameRules;
+import net.minecraft.world.GameRules.Category;
 
 import java.util.HashSet;
 import java.util.Map.Entry;
@@ -18,6 +22,8 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import dev.doublekekse.area_lib.Area;
+import dev.doublekekse.area_lib.AreaLib;
 import io.github.chromonym.playercontainer.registries.*;
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
 import io.github.chromonym.playercontainer.items.ContainerInstanceHolder;
@@ -27,12 +33,17 @@ import io.github.chromonym.playercontainer.networking.ReleaseRequestPayload;
 public class PlayerContainer implements ModInitializer {
 	public static final String MOD_ID = "playercontainer";
 
+	public static final Identifier VALID_AREA = identifier("booth");
+
 	// This logger is used to write text to the console and the log file.
 	// It is considered best practice to use your mod id as the logger's name.
 	// That way, it's clear which mod wrote info, warnings, and errors.
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
 	public static boolean sendToAll = false;
+
+	public static final GameRules.Key<GameRules.BooleanRule> RESTRICT_TO_BOOTH =
+	GameRuleRegistry.register("playercontainer:restrictToBooth", Category.PLAYER, GameRuleFactory.createBooleanRule(true));
 
 	@Override
 	public void onInitialize() {
@@ -84,6 +95,12 @@ public class PlayerContainer implements ModInitializer {
 	public static void destroyMissingContainers(PlayerManager players) {
 		Set<ContainerInstance<?>> toDestroy = new HashSet<ContainerInstance<?>>();
 		for (ContainerInstance<?> ci : ContainerInstance.containers.values()) {
+			Area validArea = AreaLib.getServerArea(players.getServer(), PlayerContainer.VALID_AREA);
+			if (ci.getWorld() != null) {
+				if (ci.getWorld().getGameRules().getBoolean(PlayerContainer.RESTRICT_TO_BOOTH) && !(validArea != null && validArea.contains(ci.getWorld(), ci.getBlockPos().toCenterPos()))) {
+					ci.releaseAll(players, false, ci.getBlockPos());
+				}
+			}
 			ci.getOwner().ifLeft(entity -> {
 				if (entity instanceof PlayerEntity owner) {
 					ServerPlayerEntity player = players.getPlayer(owner.getUuid());

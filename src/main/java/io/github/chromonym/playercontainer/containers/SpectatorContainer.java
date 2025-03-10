@@ -3,6 +3,8 @@ package io.github.chromonym.playercontainer.containers;
 import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.util.Either;
 
+import dev.doublekekse.area_lib.Area;
+import dev.doublekekse.area_lib.AreaLib;
 import io.github.chromonym.playercontainer.PlayerContainer;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
@@ -114,7 +116,9 @@ public class SpectatorContainer extends AbstractContainer {
 
     @Override
     public void onPlayerTick(ServerPlayerEntity player, ContainerInstance<?> ci) {
-        if (ci.getBlockPos().getY() < player.getWorld().getBottomY()) {
+        Area validArea = AreaLib.getServerArea(player.getServer(), PlayerContainer.VALID_AREA);
+        if (ci.getBlockPos().getY() < player.getWorld().getBottomY()
+        || (player.getWorld().getGameRules().getBoolean(PlayerContainer.RESTRICT_TO_BOOTH) && !(validArea != null && validArea.contains(player.getWorld(), ci.getBlockPos().toCenterPos())))) {
             ci.release(player, false, ci.getBlockPos(), true);
         }
         if (player.isSpectator()) {
