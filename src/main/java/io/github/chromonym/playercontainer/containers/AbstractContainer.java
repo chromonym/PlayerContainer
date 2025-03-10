@@ -41,6 +41,7 @@ public abstract class AbstractContainer {
     }
 
     public final boolean capture(PlayerEntity player, ContainerInstance<?> ci, boolean recapturing) {
+        recapturing = false; // BC25 removing temp releases
         Optional<Entity> thisOwner = ci.getOwner().left();
         GameProfile toRemove = null;
         for (Entry<GameProfile,UUID> prof : ContainerInstance.players.entrySet()) {
@@ -122,6 +123,7 @@ public abstract class AbstractContainer {
 
     public final void release(GameProfile profile, PlayerManager players, ContainerInstance<?> ci, boolean recaptureLater, BlockPos pos, boolean doSend) {
         PlayerEntity player = players.getPlayer(profile.getId());
+        recaptureLater = false; // BC25 disabling temp releases
         if (recaptureLater) { // if the player has just logged off or container is unavailable (not actually released)
             ContainerInstance.playersToRecapture.put(profile.getId(), ci.getID()); // add them to recapture list
             if (ContainerInstance.players.containsKey(profile) && player != null) { // remove them from this container temporarily

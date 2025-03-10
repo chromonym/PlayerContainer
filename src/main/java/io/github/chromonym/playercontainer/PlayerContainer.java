@@ -2,6 +2,7 @@ package io.github.chromonym.playercontainer;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
@@ -21,6 +22,7 @@ import io.github.chromonym.playercontainer.registries.*;
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
 import io.github.chromonym.playercontainer.items.ContainerInstanceHolder;
 import io.github.chromonym.playercontainer.networking.ContainerInstancesPayload;
+import io.github.chromonym.playercontainer.networking.ReleaseRequestPayload;
 
 public class PlayerContainer implements ModInitializer {
 	public static final String MOD_ID = "playercontainer";
@@ -39,6 +41,7 @@ public class PlayerContainer implements ModInitializer {
 		// Proceed with mild caution.
 
 		PayloadTypeRegistry.playS2C().register(ContainerInstancesPayload.ID, ContainerInstancesPayload.PACKET_CODEC);
+		PayloadTypeRegistry.playC2S().register(ReleaseRequestPayload.ID, ReleaseRequestPayload.CODEC);
 
 		Blocks.initialize();
 		BlockEntities.initialize();
@@ -49,6 +52,12 @@ public class PlayerContainer implements ModInitializer {
 		Commands.intialize();
 		Events.initialize();
 		DispenserBehaviour.initialize();
+
+		ServerPlayNetworking.registerGlobalReceiver(ReleaseRequestPayload.ID, (payload, context) -> {
+			if (ContainerInstance.players.containsKey(context.player().getGameProfile())) {
+				ContainerInstance.releasePlayer(context.player());
+			}
+		});
 
 	}
 

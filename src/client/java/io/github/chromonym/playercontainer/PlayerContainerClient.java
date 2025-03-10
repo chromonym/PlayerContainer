@@ -1,20 +1,29 @@
 package io.github.chromonym.playercontainer;
 
+import org.lwjgl.glfw.GLFW;
+
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
 import io.github.chromonym.playercontainer.items.ContainerInstanceHolder;
 import io.github.chromonym.playercontainer.networking.ContainerInstancesPayload;
+import io.github.chromonym.playercontainer.networking.ReleaseRequestPayload;
 import io.github.chromonym.playercontainer.registries.Blocks;
 import io.github.chromonym.playercontainer.registries.Items;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
 import net.minecraft.client.item.ClampedModelPredicateProvider;
 import net.minecraft.client.item.ModelPredicateProviderRegistry;
+import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.util.InputUtil;
 import net.minecraft.util.Identifier;
 
 public class PlayerContainerClient implements ClientModInitializer {
+
+	public static KeyBinding releaseKey;
 
 	public static final ClampedModelPredicateProvider captureCountProvider = (itemStack, clientWorld, livingEntity, seed) -> {
 		// returns a float representing the percentage of its maximum size filled
@@ -63,6 +72,17 @@ public class PlayerContainerClient implements ClientModInitializer {
 					});
 				}
 			});
+		});
+		releaseKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+			"key.playercontainer.release", // The translation key of the keybinding's name
+			InputUtil.Type.KEYSYM, // The type of the keybinding, KEYSYM for keyboard, MOUSE for mouse.
+			GLFW.GLFW_KEY_R, // The keycode of the key
+			"category.playercontainer" // The translation key of the keybinding's category.
+		));
+		ClientTickEvents.END_CLIENT_TICK.register(client -> {
+			while (releaseKey.wasPressed()) {
+			ClientPlayNetworking.send(new ReleaseRequestPayload(true));
+			}
 		});
 		ModelPredicateProviderRegistry.register(Items.basicContainer, Identifier.ofVanilla("captured"), captureCountProvider);
 		ModelPredicateProviderRegistry.register(Items.largeContainer, Identifier.ofVanilla("captured"), captureCountProvider);
