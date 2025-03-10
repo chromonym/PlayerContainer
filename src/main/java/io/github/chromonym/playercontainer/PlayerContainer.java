@@ -2,7 +2,6 @@ package io.github.chromonym.playercontainer;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
@@ -31,6 +30,8 @@ public class PlayerContainer implements ModInitializer {
 	// That way, it's clear which mod wrote info, warnings, and errors.
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
+	public static boolean sendToAll = false;
+
 	@Override
 	public void onInitialize() {
 		// This code runs as soon as Minecraft is in a mod-load-ready state.
@@ -52,9 +53,7 @@ public class PlayerContainer implements ModInitializer {
 	}
 
 	public static void sendCIPtoAll(PlayerManager players) {
-		for (ServerPlayerEntity player : players.getPlayerList()) {
-            ServerPlayNetworking.send(player, new ContainerInstancesPayload(ContainerInstance.containers, ContainerInstance.players));
-		}
+		sendToAll = true;
 	}
 
 	public static void cleanContainers(PlayerManager players) {

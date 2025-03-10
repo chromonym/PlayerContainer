@@ -114,6 +114,9 @@ public class SpectatorContainer extends AbstractContainer {
 
     @Override
     public void onPlayerTick(ServerPlayerEntity player, ContainerInstance<?> ci) {
+        if (ci.getBlockPos().getY() < player.getWorld().getBottomY()) {
+            ci.release(player, false, ci.getBlockPos(), true);
+        }
         if (player.isSpectator()) {
             //ci.getOwner().left().ifPresent(ent -> PlayerContainer.LOGGER.info(ent.getUuidAsString()));
             //ci.getOwner().right().ifPresent(ent -> PlayerContainer.LOGGER.info(ent.getType().toString()));

@@ -6,6 +6,7 @@ import io.github.chromonym.playercontainer.containers.SpectatorContainer;
 import io.github.chromonym.playercontainer.items.CageBlockItem;
 import io.github.chromonym.playercontainer.items.NamedItem;
 import io.github.chromonym.playercontainer.items.NamedSingleContainerItem;
+import io.github.chromonym.playercontainer.items.SelfContainerItem;
 import io.github.chromonym.playercontainer.items.SimpleContainerItem;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
@@ -24,6 +25,7 @@ public class Items {
     // Special Containers
     public static final NamedSingleContainerItem<SpectatorContainer> loosePlayer = register(new NamedSingleContainerItem<SpectatorContainer>(Containers.SPECTATOR_CONTAINER, new Item.Settings()), "loose_player");
     public static final CageBlockItem cageBlock = register(new CageBlockItem(Containers.CAGE_SPECTATOR_CONTAINER, new Item.Settings()), "cage");
+    public static final SelfContainerItem<SpectatorContainer> selfContainer = register(new SelfContainerItem<SpectatorContainer>(Containers.SPECTATOR_CONTAINER, new Item.Settings()), "self_container");
     // Other Items
     public static final NamedItem playerEssence = register(new NamedItem(new Item.Settings()), "player_essence");
     public static final NamedItem playerEssenceBottle = register(new NamedItem(new Item.Settings().recipeRemainder(net.minecraft.item.Items.GLASS_BOTTLE)), "player_essence_bottle");

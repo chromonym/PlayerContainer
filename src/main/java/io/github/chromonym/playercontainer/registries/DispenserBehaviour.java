@@ -14,6 +14,7 @@ public class DispenserBehaviour {
         DispenserBlock.registerBehavior(Items.largeContainer, CONTAINER_BEHAVIOUR);
         DispenserBlock.registerBehavior(Items.loosePlayer, CONTAINER_BEHAVIOUR);
         DispenserBlock.registerBehavior(Items.cageBlock, CONTAINER_BEHAVIOUR);
+        DispenserBlock.registerBehavior(Items.selfContainer, CONTAINER_BEHAVIOUR);
         DispenserBlock.registerBehavior(Items.singularityContainer, CONTAINER_BEHAVIOUR);
     }
 

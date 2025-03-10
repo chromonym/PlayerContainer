@@ -20,6 +20,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerBlockEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.LootableInventory;
@@ -44,6 +45,12 @@ public class Events {
 		ServerTickEvents.END_WORLD_TICK.register(world -> {
 			ContainerInstance.checkRecaptureDecapture(world);
 			ContainerInstance.disconnectedPlayers.clear();
+            if (PlayerContainer.sendToAll) {
+                for (ServerPlayerEntity player : world.getServer().getPlayerManager().getPlayerList()) {
+                    ServerPlayNetworking.send(player, new ContainerInstancesPayload(ContainerInstance.containers, ContainerInstance.players));
+                }
+            }
+            PlayerContainer.sendToAll = false;
 		});
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
             if (entity instanceof ServerPlayerEntity player) {
