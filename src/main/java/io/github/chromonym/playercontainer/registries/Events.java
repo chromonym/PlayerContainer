@@ -5,6 +5,9 @@ import java.util.Map.Entry;
 
 import com.mojang.authlib.GameProfile;
 
+import dev.doublekekse.area_lib.Area;
+import dev.doublekekse.area_lib.AreaLib;
+
 import java.util.Set;
 import java.util.UUID;
 
@@ -53,7 +56,9 @@ public class Events {
             PlayerContainer.sendToAll = false;
 		});
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
-            if (entity instanceof ServerPlayerEntity player) {
+            Area area = AreaLib.getServerArea(entity.getServer(), PlayerContainer.VALID_AREA);
+            if (entity instanceof ServerPlayerEntity player &&
+            (!entity.getWorld().getGameRules().getBoolean(PlayerContainer.RESTRICT_TO_BOOTH) || (area != null && area.contains(entity)))) {
                 ItemStack stack = Items.playerEssence.getDefaultStack();
                 String str = player.getNameForScoreboard();
                 stack.set(ItemComponents.PLAYER_NAME, str.substring(0, 1).toUpperCase() + str.substring(1));
