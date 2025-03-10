@@ -143,6 +143,7 @@ public class CageBlockEntity extends BlockEntity implements ContainerInstanceHol
             Items.loosePlayer.getOrMakeContainerInstance(toReturn, world); // hopefully this doesn't totally break everything :3
             getOrMakeContainerInstance(this, world);
             world.updateComparators(pos, getCachedState().getBlock());
+            markDirty();
             return toReturn;
         } else {
             return ItemStack.EMPTY;

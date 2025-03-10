@@ -165,7 +165,7 @@ public abstract class AbstractContainer {
         for (GameProfile profile : toRelease) {
             release(profile, players, ci, recaptureLater, pos, false);
         }
-        PlayerContainer.sendCIPtoAll(ci.getWorld().getServer().getPlayerManager());
+        PlayerContainer.sendCIPtoAll(players);
         /*if (!recaptureLater) {
             for (Entry<UUID,UUID> entry : ContainerInstance.playersToRecapture.entrySet()) {
                 if (entry.getValue() == ci.getID()) {

@@ -24,7 +24,7 @@ public class SimpleContainerItem<C extends AbstractContainer> extends AbstractCo
         ContainerInstance<?> cont = getOrMakeContainerInstance(user.getStackInHand(hand), user.getWorld());
         if (cont != null && entity instanceof PlayerEntity player) {
             boolean bl = cont.getContainer().capture(player, cont);
-            return bl ? ActionResult.SUCCESS : ActionResult.CONSUME;
+            return ActionResult.success(bl);
         }
         return super.useOnEntity(stack, user, entity, hand);
     }

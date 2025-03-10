@@ -188,19 +188,21 @@ public class ContainerInstance<C extends AbstractContainer> {
     public BlockPos getBlockPos() {
         if (ownerEntity != null) {
             return ownerEntity.getBlockPos();
-        } else if (ownerEntity != null) {
-            return ownerBlockEntity.getPos();
-        } else {
+        }
+        if (cachedBlockPos != null) {
             return cachedBlockPos;
         }
+        return ownerBlockEntity.getPos();
     }
 
     public World getWorld() {
         if (ownerEntity != null) {
             return ownerEntity.getWorld();
-        } else {
+        }
+        if (ownerBlockEntity != null) {
             return ownerBlockEntity.getWorld();
         }
+        return null;
     }
 
     public static void checkRecaptureDecapture(World world) {
@@ -208,6 +210,8 @@ public class ContainerInstance<C extends AbstractContainer> {
         Map<PlayerEntity, ContainerInstance<?>> released = new HashMap<PlayerEntity, ContainerInstance<?>>();
         Map<PlayerEntity, ContainerInstance<?>> caged = new HashMap<PlayerEntity, ContainerInstance<?>>();
         Map<PlayerEntity, ContainerInstance<?>> uncaged = new HashMap<PlayerEntity, ContainerInstance<?>>();
+
+        // Recapturing
         for (Entry<UUID, UUID> entry : playersToRecapture.entrySet()) {
             PlayerEntity player = world.getServer().getPlayerManager().getPlayer(entry.getKey());
             if (player != null && !disconnectedPlayers.contains(player.getUuid())) {
@@ -237,6 +241,47 @@ public class ContainerInstance<C extends AbstractContainer> {
             }
             ContainerInstance.playersToRecapture.remove(entry.getKey().getUuid());
         }
+
+        // Caging
+        for (Entry<UUID, UUID> entry : CageSpectatorContainer.playersToCage.entrySet()) {
+            PlayerEntity player = world.getServer().getPlayerManager().getPlayer(entry.getKey());
+            if (player != null) {
+                ContainerInstance<?> cont = containers.get(entry.getValue());
+                if (cont != null && cont.getContainer() instanceof CageSpectatorContainer) {
+                    cont.getOwner().ifRight(blockEntity -> {
+                        if (blockEntity != null && blockEntity instanceof CageBlockEntity) {
+                            BlockPos pos = blockEntity.getPos();
+                            if (world.isChunkLoaded(ChunkSectionPos.getSectionCoord(pos.getX()), ChunkSectionPos.getSectionCoord(pos.getZ()))) {
+                                caged.put(player, cont);
+                            }
+                        }
+                    });
+                }
+            }
+        }
+        for (Entry<PlayerEntity,ContainerInstance<?>> entry : caged.entrySet()) {
+            CageSpectatorContainer.playersToCage.remove(entry.getKey().getUuid());
+            if (entry.getKey() instanceof ServerPlayerEntity spe) {
+                entry.getValue().getContainer().onPlaceBlock(entry.getValue(), spe.getServerWorld(), entry.getValue().getBlockPos(), spe.getServer().getPlayerManager());
+            }
+        }
+
+        // Uncaging
+        for (Entry<UUID, UUID> entry : CageSpectatorContainer.playersToUncage.entrySet()) {
+            PlayerEntity player = world.getServer().getPlayerManager().getPlayer(entry.getKey());
+            if (player != null) {
+                ContainerInstance<?> cont = containers.get(entry.getValue());
+                uncaged.put(player, cont);
+            }
+        }
+        for (Entry<PlayerEntity,ContainerInstance<?>> entry : uncaged.entrySet()) {
+            CageSpectatorContainer.playersToUncage.remove(entry.getKey().getUuid());
+            if (entry.getKey() instanceof ServerPlayerEntity spe) {
+                CageSpectatorContainer.uncagePlayer(spe);
+            }
+        }
+
+        // Releasing
         for (Entry<UUID, UUID> entry : playersToRelease.entrySet()) {
             PlayerEntity player = world.getServer().getPlayerManager().getPlayer(entry.getKey());
             if (player != null) {
@@ -263,43 +308,6 @@ public class ContainerInstance<C extends AbstractContainer> {
         for (Entry<PlayerEntity,ContainerInstance<?>> entry : released.entrySet()) {
             ContainerInstance.playersToRelease.remove(entry.getKey().getUuid());
             entry.getValue().release(entry.getKey(), false, entry.getValue().getBlockPos(), false);
-        }
-
-        for (Entry<UUID, UUID> entry : CageSpectatorContainer.playersToCage.entrySet()) {
-            PlayerEntity player = world.getServer().getPlayerManager().getPlayer(entry.getKey());
-            if (player != null) {
-                ContainerInstance<?> cont = containers.get(entry.getValue());
-                if (cont != null && cont.getContainer() instanceof CageSpectatorContainer) {
-                    cont.getOwner().ifRight(blockEntity -> {
-                        if (blockEntity != null && blockEntity instanceof CageBlockEntity) {
-                            BlockPos pos = blockEntity.getPos();
-                            if (world.isChunkLoaded(ChunkSectionPos.getSectionCoord(pos.getX()), ChunkSectionPos.getSectionCoord(pos.getZ()))) {
-                                caged.put(player, cont);
-                            }
-                        }
-                    });
-                }
-            }
-        }
-        for (Entry<PlayerEntity,ContainerInstance<?>> entry : caged.entrySet()) {
-            CageSpectatorContainer.playersToCage.remove(entry.getKey().getUuid());
-            if (entry.getKey() instanceof ServerPlayerEntity spe) {
-                entry.getValue().getContainer().onPlaceBlock(entry.getValue(), spe.getServerWorld(), entry.getValue().getBlockPos(), spe.getServer().getPlayerManager());
-            }
-        }
-
-        for (Entry<UUID, UUID> entry : CageSpectatorContainer.playersToUncage.entrySet()) {
-            PlayerEntity player = world.getServer().getPlayerManager().getPlayer(entry.getKey());
-            if (player != null) {
-                ContainerInstance<?> cont = containers.get(entry.getValue());
-                uncaged.put(player, cont);
-            }
-        }
-        for (Entry<PlayerEntity,ContainerInstance<?>> entry : uncaged.entrySet()) {
-            CageSpectatorContainer.playersToUncage.remove(entry.getKey().getUuid());
-            if (entry.getKey() instanceof ServerPlayerEntity spe) {
-                CageSpectatorContainer.uncagePlayer(spe);
-            }
         }
 
         if (recaptured.size() > 0 || released.size() > 0) {
@@ -331,7 +339,7 @@ public class ContainerInstance<C extends AbstractContainer> {
         if (entity != ownerEntity) {
             if (entity instanceof PlayerEntity pe) {
                 if (getPlayers().contains(pe.getGameProfile())) {
-                    release(pe, false, ownerEntity.getBlockPos(), true);
+                    release(pe, false, getBlockPos(), true);
                 }
             }
             container.onOwnerChange(getOwner(), Either.left(entity), this);

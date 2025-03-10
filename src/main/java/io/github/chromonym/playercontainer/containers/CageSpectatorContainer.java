@@ -84,12 +84,11 @@ public class CageSpectatorContainer extends SpectatorContainer {
 
     @Override
     public void onRelease(PlayerEntity player, ContainerInstance<?> ci, BlockPos pos) {
-        player.getAttributeInstance(EntityAttributes.GENERIC_SCALE).removeModifier(CAGE_SCALE_MODIFIER_ID);
+        if (player instanceof ServerPlayerEntity spe) {
+            uncagePlayer(spe);
+        }
         if (playersToCage.containsKey(player.getUuid())) {
             playersToCage.remove(player.getUuid());
-        }
-        if (playersToUncage.containsKey(player.getUuid())) {
-            playersToUncage.remove(player.getUuid());
         }
         super.onRelease(player, ci, pos);
     }
@@ -110,11 +109,16 @@ public class CageSpectatorContainer extends SpectatorContainer {
         if (!player.isSpectator()) {
             ci.getOwner().ifRight(blockEntity -> {
                 if (blockEntity instanceof CageBlockEntity && !player.isCreative()) {
-                    if (!player.getPos().isWithinRangeOf(blockEntity.getPos().toCenterPos(), 1.0, 1.0)) {
-                        player.teleportTo(new TeleportTarget(player.getServerWorld(), blockEntity.getPos().toBottomCenterPos().add(0, 0.0625, 0), Vec3d.ZERO, player.getYaw(), player.getPitch(), blockEntity.getWorld() == player.getWorld() ? TeleportTarget.NO_OP : TeleportTarget.SEND_TRAVEL_THROUGH_PORTAL_PACKET));
-                    }
-                    if (!player.getAttributeInstance(EntityAttributes.GENERIC_SCALE).hasModifier(CAGE_SCALE_MODIFIER_ID)) {
-                        player.getAttributeInstance(EntityAttributes.GENERIC_SCALE).addPersistentModifier(new EntityAttributeModifier(CAGE_SCALE_MODIFIER_ID, -0.75, Operation.ADD_MULTIPLIED_TOTAL));
+                    if (ci.getWorld().getBlockEntity(blockEntity.getPos()) instanceof CageBlockEntity) {
+                        if (!player.getPos().isWithinRangeOf(blockEntity.getPos().toCenterPos(), 1.0, 1.0)) {
+                            player.teleportTo(new TeleportTarget(player.getServerWorld(), blockEntity.getPos().toBottomCenterPos().add(0, 0.0625, 0), Vec3d.ZERO, player.getYaw(), player.getPitch(), blockEntity.getWorld() == player.getWorld() ? TeleportTarget.NO_OP : TeleportTarget.SEND_TRAVEL_THROUGH_PORTAL_PACKET));
+                        }
+                        if (!player.getAttributeInstance(EntityAttributes.GENERIC_SCALE).hasModifier(CAGE_SCALE_MODIFIER_ID)) {
+                            player.getAttributeInstance(EntityAttributes.GENERIC_SCALE).addPersistentModifier(new EntityAttributeModifier(CAGE_SCALE_MODIFIER_ID, -0.75, Operation.ADD_MULTIPLIED_TOTAL));
+                        }
+                    } else {
+                        // cage block entity is most recent owner but there isn't actually a cage block
+                        uncagePlayer(player);
                     }
                 }
             });

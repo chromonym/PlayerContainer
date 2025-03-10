@@ -3,6 +3,7 @@ package io.github.chromonym.playercontainer.containers;
 import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.util.Either;
 
+import io.github.chromonym.playercontainer.PlayerContainer;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -55,7 +56,7 @@ public class SpectatorContainer extends AbstractContainer {
     @Override
     public void onRelease(PlayerEntity player, ContainerInstance<?> ci, BlockPos pos) {
         if (player instanceof ServerPlayerEntity serverPlayer) {
-            serverPlayer.teleportTo(new TeleportTarget(serverPlayer.getServerWorld(), pos.toCenterPos(), Vec3d.ZERO, player.getYaw(), player.getPitch(), TeleportTarget.NO_OP));
+            serverPlayer.teleportTo(new TeleportTarget(serverPlayer.getServerWorld(), pos.toBottomCenterPos(), Vec3d.ZERO, player.getYaw(), player.getPitch(), TeleportTarget.NO_OP));
             serverPlayer.changeGameMode(serverPlayer.getServer().getDefaultGameMode());
         }
     }
@@ -114,6 +115,8 @@ public class SpectatorContainer extends AbstractContainer {
     @Override
     public void onPlayerTick(ServerPlayerEntity player, ContainerInstance<?> ci) {
         if (player.isSpectator()) {
+            ci.getOwner().left().ifPresent(ent -> PlayerContainer.LOGGER.info(ent.getUuidAsString()));
+            ci.getOwner().right().ifPresent(ent -> PlayerContainer.LOGGER.info(ent.getType().toString()));
             ci.getOwner().ifLeft(entity -> {
                 if (player.getCameraEntity() == null || player.getCameraEntity() == player) {
                     // not spectating anything - restrict distance
@@ -134,13 +137,16 @@ public class SpectatorContainer extends AbstractContainer {
                     }
                 }
             }).ifRight(blockEntity -> {
-                if (blockEntity != null) {
+                if (blockEntity != null && blockEntity.getWorld().getBlockEntity(blockEntity.getPos()) != null && blockEntity.getWorld().getBlockEntity(blockEntity.getPos()).getType() == blockEntity.getType()) {
                     if (player.getCameraEntity() != null && player.getCameraEntity() != player) {
                         player.setCameraEntity(null);
                         player.teleportTo(new TeleportTarget((ServerWorld)blockEntity.getWorld(), blockEntity.getPos().toCenterPos().add(0, -player.getEyeHeight(player.getPose()), 0), Vec3d.ZERO, player.getYaw(), player.getPitch(), blockEntity.getWorld() == player.getWorld() ? TeleportTarget.NO_OP : TeleportTarget.SEND_TRAVEL_THROUGH_PORTAL_PACKET));
                         //player.teleport((ServerWorld)blockEntity.getWorld(), blockPos.getX(), blockPos.getY()-player.getEyeHeight(player.getPose()), blockPos.getZ(), player.getYaw(), player.getPitch());
                     }
                     restrictDistance(player, blockEntity.getPos().toCenterPos(), blockEntity.getWorld());
+                } else {
+                    PlayerContainer.LOGGER.warn("Container owner could not be found, releasing players");
+                    ci.release(player, false, ci.getBlockPos(), true);
                 }
             });
             /*ci.getOwner().ifLeft(entity -> {
