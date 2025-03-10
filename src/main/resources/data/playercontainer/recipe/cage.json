@@ -1,0 +1,26 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        "DBD",
+        "ICI",
+        "BBB"
+    ],
+    "key": {
+        "C": {
+            "item": "playercontainer:basic_container"
+        },
+        "I": {
+            "item": "minecraft:iron_bars"
+        },
+        "B": {
+            "item": "minecraft:blackstone"
+        },
+        "D": {
+            "item": "minecraft:diamond"
+        }
+    },
+    "result": {
+        "id": "playercontainer:cage",
+        "count": 1
+    }
+}

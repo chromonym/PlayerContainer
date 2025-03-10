@@ -115,8 +115,8 @@ public class SpectatorContainer extends AbstractContainer {
     @Override
     public void onPlayerTick(ServerPlayerEntity player, ContainerInstance<?> ci) {
         if (player.isSpectator()) {
-            ci.getOwner().left().ifPresent(ent -> PlayerContainer.LOGGER.info(ent.getUuidAsString()));
-            ci.getOwner().right().ifPresent(ent -> PlayerContainer.LOGGER.info(ent.getType().toString()));
+            //ci.getOwner().left().ifPresent(ent -> PlayerContainer.LOGGER.info(ent.getUuidAsString()));
+            //ci.getOwner().right().ifPresent(ent -> PlayerContainer.LOGGER.info(ent.getType().toString()));
             ci.getOwner().ifLeft(entity -> {
                 if (player.getCameraEntity() == null || player.getCameraEntity() == player) {
                     // not spectating anything - restrict distance
