@@ -6,6 +6,7 @@ import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemUsageContext;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
@@ -20,6 +21,24 @@ public class SelfContainerItem<C extends AbstractContainer> extends SimpleContai
     @Override
     public ActionResult useOnEntity(ItemStack stack, PlayerEntity user, LivingEntity entity, Hand hand) {
         return use(user.getWorld(), user, hand).getResult();
+    }
+
+    @Override
+    public ActionResult useOnBlock(ItemUsageContext context) {
+        PlayerEntity user = context.getPlayer();
+        World world = context.getWorld();
+        Hand hand = context.getHand();
+        ItemStack stack = user.getStackInHand(hand);
+        ContainerInstance<?> cont = getOrMakeContainerInstance(stack, world);
+        if (cont != null) {
+            if (cont.getPlayerCount() == 0) {
+                return use(world, user, hand).getResult();
+            } else {
+                doRelease(stack, cont, world, user, hand, context.getBlockPos().add(context.getSide().getVector()));
+                return ActionResult.SUCCESS;
+            }
+        }
+        return super.useOnBlock(context);
     }
 
     @Override
