@@ -59,6 +59,8 @@ public class LoosePlayerRenderer implements DynamicItemRenderer {
                     case GUI:
                         matrices.translate(0.5f, 0f, 0f);
                         matrices.scale(0.5f, 0.5f, 0.5f);
+                        //matrices.multiply(new Quaternionf(new AxisAngle4f((float)Math.toRadians(20.0),1f,0f,0f)));
+                        matrices.multiply(new Quaternionf(new AxisAngle4f((float)Math.toRadians(-20.0),0f,1f,0f)));
                         break;
                     case HEAD:
                         matrices.multiply(new Quaternionf(new AxisAngle4f((float)Math.toRadians(180.0),0f,1f,0f)));
