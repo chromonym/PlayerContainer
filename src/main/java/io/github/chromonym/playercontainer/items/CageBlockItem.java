@@ -30,7 +30,7 @@ public class CageBlockItem extends BlockItem implements ContainerInstanceHolder<
     public final CageSpectatorContainer container;
 
     public CageBlockItem(CageSpectatorContainer container, Settings settings) {
-        super(Blocks.CAGE_BLOCK, settings);
+        super(Blocks.CAGE_BLOCK, settings.maxCount(1));
         this.container = container;
     }
 

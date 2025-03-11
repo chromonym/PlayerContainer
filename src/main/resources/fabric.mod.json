@@ -3,14 +3,15 @@
 	"id": "playercontainer",
 	"version": "${version}",
 	"name": "Player Containers",
-	"description": "A (work-in-progress) mod that lets you store other players in items!",
+	"description": "A (work-in-progress) mod that lets you store other players in items! This is the BlanketCon '25 showcase version.",
 	"authors": [
 		"Chromonym",
 		"Swizik"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/chromonym/PlayerContainer"
+		"homepage": "https://modrinth.com/mod/playercontainers",
+		"sources": "https://github.com/chromonym/PlayerContainer",
+		"issues": "https://github.com/chromonym/PlayerContainer/issues"
 	},
 	"license": "BSD-3-Clause",
 	"icon": "assets/playercontainer/icon.png",
