@@ -76,7 +76,7 @@ public class PlayerContainerClient implements ClientModInitializer {
 		releaseKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
 			"key.playercontainer.release", // The translation key of the keybinding's name
 			InputUtil.Type.KEYSYM, // The type of the keybinding, KEYSYM for keyboard, MOUSE for mouse.
-			GLFW.GLFW_KEY_R, // The keycode of the key
+			GLFW.GLFW_KEY_UNKNOWN, // The keycode of the key
 			"category.playercontainer" // The translation key of the keybinding's category.
 		));
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
