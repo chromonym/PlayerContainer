@@ -6,6 +6,7 @@ import com.mojang.datafixers.util.Either;
 import dev.doublekekse.area_lib.Area;
 import dev.doublekekse.area_lib.AreaLib;
 import io.github.chromonym.playercontainer.PlayerContainer;
+import net.minecraft.block.Portal;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -116,9 +117,11 @@ public class SpectatorContainer extends AbstractContainer {
 
     @Override
     public void onPlayerTick(ServerPlayerEntity player, ContainerInstance<?> ci) {
-        Area validArea = AreaLib.getServerArea(player.getServer(), PlayerContainer.VALID_AREA);
-        if (ci.getBlockPos().getY() < player.getWorld().getBottomY()
-        || (player.getWorld().getGameRules().getBoolean(PlayerContainer.RESTRICT_TO_BOOTH) && !(validArea != null && validArea.contains(player.getWorld(), ci.getBlockPos().toCenterPos())))) {
+        Area invalidArea = AreaLib.getServerArea(player.getServer(), PlayerContainer.INVALID_AREA);
+        if (ci.getBlockPos().getY() < player.getWorld().getBottomY() // container is in the void
+        || player.getWorld().getBlockState(ci.getBlockPos()).getBlock() instanceof Portal // container is inside a portal block
+        || (player.getWorld().getGameRules().getBoolean(PlayerContainer.RESTRICT_TO_BOOTH) && invalidArea != null && invalidArea.contains(player.getWorld(), ci.getBlockPos().toCenterPos()))) {
+            // container is in a custom invalid area
             ci.release(player, false, ci.getBlockPos(), true);
         }
         if (player.isSpectator()) {

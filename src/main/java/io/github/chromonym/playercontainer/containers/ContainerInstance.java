@@ -317,16 +317,20 @@ public class ContainerInstance<C extends AbstractContainer> {
     }
 
     public static void releasePlayer(PlayerEntity player) {
+        Map<PlayerEntity,ContainerInstance<?>> toRelease = new HashMap<PlayerEntity,ContainerInstance<?>>();
         for (GameProfile profile : ContainerInstance.players.keySet()) {
             if (profile.getId() == player.getUuid()) {
                 UUID contID = players.get(profile);
                 if (contID != null && containers.containsKey(contID)) {
                     ContainerInstance<?> ci = containers.get(contID);
-                    if (ci != null) { ci.release(player, false, ci.getBlockPos(), true); }
+                    if (ci != null) { toRelease.put(player, ci); }
                 } else {
                     PlayerContainer.LOGGER.warn("COULD NOT RELEASE PLAYER");
                 }
             }
+        }
+        for (Entry<PlayerEntity,ContainerInstance<?>> entry : toRelease.entrySet()) {
+            entry.getValue().release(entry.getKey(), false, entry.getValue().getBlockPos(), true);
         }
         for (Entry<UUID,UUID> entry : ContainerInstance.playersToRecapture.entrySet()) {
             if (entry.getKey() == player.getUuid()) {

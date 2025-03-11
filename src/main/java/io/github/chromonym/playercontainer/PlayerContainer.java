@@ -34,6 +34,7 @@ public class PlayerContainer implements ModInitializer {
 	public static final String MOD_ID = "playercontainer";
 
 	public static final Identifier VALID_AREA = identifier("booth");
+	public static final Identifier INVALID_AREA = identifier("restrict");
 
 	// This logger is used to write text to the console and the log file.
 	// It is considered best practice to use your mod id as the logger's name.
@@ -95,9 +96,9 @@ public class PlayerContainer implements ModInitializer {
 	public static void destroyMissingContainers(PlayerManager players) {
 		Set<ContainerInstance<?>> toDestroy = new HashSet<ContainerInstance<?>>();
 		for (ContainerInstance<?> ci : ContainerInstance.containers.values()) {
-			Area validArea = AreaLib.getServerArea(players.getServer(), PlayerContainer.VALID_AREA);
+			Area invalidArea = AreaLib.getServerArea(players.getServer(), PlayerContainer.INVALID_AREA);
 			if (ci.getWorld() != null) {
-				if (ci.getWorld().getGameRules().getBoolean(PlayerContainer.RESTRICT_TO_BOOTH) && !(validArea != null && validArea.contains(ci.getWorld(), ci.getBlockPos().toCenterPos()))) {
+				if (ci.getWorld().getGameRules().getBoolean(PlayerContainer.RESTRICT_TO_BOOTH) && invalidArea != null && invalidArea.contains(ci.getWorld(), ci.getBlockPos().toCenterPos())) {
 					ci.releaseAll(players, false, ci.getBlockPos());
 				}
 			}
