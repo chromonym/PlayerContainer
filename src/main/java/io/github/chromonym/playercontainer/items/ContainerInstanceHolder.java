@@ -69,7 +69,7 @@ public interface ContainerInstanceHolder<C extends AbstractContainer> {
             if (allowClient || world.isClient()) {
                 return null;
             } else {
-                PlayerContainer.LOGGER.info("Container stack ID not yet created, adding it to the tracked list");
+                //PlayerContainer.LOGGER.info("Container stack ID not yet created, adding it to the tracked list");
                 ContainerInstance<C> cont = new ContainerInstance<C>(getContainer());
                 addToContainer.accept(cont.getID());
                 PlayerContainer.sendCIPtoAll(world.getServer().getPlayerManager());
@@ -79,7 +79,7 @@ public interface ContainerInstanceHolder<C extends AbstractContainer> {
             if (allowClient || world.isClient()) {
                 return null;
             } else {
-                PlayerContainer.LOGGER.info("Container stack ID not yet loaded, adding it to the tracked list");
+                //PlayerContainer.LOGGER.info("Container stack ID not yet loaded, adding it to the tracked list");
                 ContainerInstance<C> cont = new ContainerInstance<C>(getContainer(), id);
                 PlayerContainer.sendCIPtoAll(world.getServer().getPlayerManager());
                 return cont;

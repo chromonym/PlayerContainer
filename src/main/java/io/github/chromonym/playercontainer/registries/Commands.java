@@ -17,30 +17,38 @@ public class Commands {
                 .executes(context -> {
                     if (context.getSource().isExecutedByPlayer()) {
                         ServerPlayerEntity player = context.getSource().getPlayer();
-                        ContainerInstance.releasePlayer(player);
-                        context.getSource().sendFeedback(() -> Text.literal("Released player "+player.getNameForScoreboard()), false);
+                        boolean success = ContainerInstance.releasePlayer(player);
+                        if (success) {
+                            context.getSource().sendFeedback(() -> Text.literal("Released player "+player.getNameForScoreboard()), false);
+                        } else {
+                            context.getSource().sendFeedback(() -> Text.literal("Could not release player "+player.getNameForScoreboard()), false);
+                        }
                     }
                     return 1;
                 })
             .then(argument("player", EntityArgumentType.player()).requires(source -> source.hasPermissionLevel(2))
                 .executes(context -> {
                     ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-                    ContainerInstance.releasePlayer(player);
-                    context.getSource().sendFeedback(() -> Text.literal("Released player "+player.getNameForScoreboard()), false);
+                    boolean success = ContainerInstance.releasePlayer(player);
+                    if (success) {
+                        context.getSource().sendFeedback(() -> Text.literal("Released player "+player.getNameForScoreboard()), true);
+                    } else {
+                        context.getSource().sendFeedback(() -> Text.literal("Could not release player "+player.getNameForScoreboard()), true);
+                    }
                     return 1;
                 }))
         ).then(
             literal("update").requires(source -> source.hasPermissionLevel(2))
                 .executes(context -> {
                     PlayerContainer.sendCIPtoAll(context.getSource().getServer().getPlayerManager());
-                    context.getSource().sendFeedback(() -> Text.literal("Sent container data to all online players"), false);
+                    context.getSource().sendFeedback(() -> Text.literal("Sent container data to all online players"), true);
                     return 1;
                 })
         ).then(
             literal("clean").requires(source -> source.hasPermissionLevel(2))
                 .executes(context -> {
                     PlayerContainer.cleanContainers(context.getSource().getServer().getPlayerManager());
-                    context.getSource().sendFeedback(() -> Text.literal("Cleaned empty containers"), false);
+                    context.getSource().sendFeedback(() -> Text.literal("Cleaned empty containers"), true);
                     return 1;
                 })
         )));

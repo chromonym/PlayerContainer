@@ -11,7 +11,8 @@
 		"ItemStackMixin",
 		"ItemEntityMixin",
 		"ServerPlayerEntityMixin",
-		"PlayerEntityMixin"
+		"PlayerEntityMixin",
+		"AbstractBlockStateMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

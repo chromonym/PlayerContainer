@@ -316,14 +316,15 @@ public class ContainerInstance<C extends AbstractContainer> {
 
     }
 
-    public static void releasePlayer(PlayerEntity player) {
+    public static boolean releasePlayer(PlayerEntity player) {
         Map<PlayerEntity,ContainerInstance<?>> toRelease = new HashMap<PlayerEntity,ContainerInstance<?>>();
+        boolean success = false;
         for (GameProfile profile : ContainerInstance.players.keySet()) {
             if (profile.getId() == player.getUuid()) {
                 UUID contID = players.get(profile);
                 if (contID != null && containers.containsKey(contID)) {
                     ContainerInstance<?> ci = containers.get(contID);
-                    if (ci != null) { toRelease.put(player, ci); }
+                    if (ci != null) { toRelease.put(player, ci); success = true; }
                 } else {
                     PlayerContainer.LOGGER.warn("COULD NOT RELEASE PLAYER");
                 }
@@ -337,6 +338,7 @@ public class ContainerInstance<C extends AbstractContainer> {
                 ContainerInstance.playersToRelease.put(entry.getKey(), entry.getValue());
             }
         }
+        return success;
     }
 
     public void setOwner(Entity entity) {

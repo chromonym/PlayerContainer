@@ -2,6 +2,7 @@ package io.github.chromonym.playercontainer.mixins;
 
 import java.util.Map.Entry;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -11,14 +12,27 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import com.google.common.collect.ImmutableList;
+import com.llamalad7.mixinextras.sugar.Local;
+import com.llamalad7.mixinextras.sugar.ref.LocalRef;
+import com.mojang.authlib.GameProfile;
 
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
+import io.github.chromonym.playercontainer.containers.SpectatorContainer;
 import io.github.chromonym.playercontainer.items.ContainerInstanceHolder;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.Entity.RemovalReason;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.function.BooleanBiFunction;
+import net.minecraft.util.math.Box;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.World;
 
 @Mixin(Entity.class)
@@ -77,6 +91,37 @@ public abstract class EntityMixin {
             }
             for (ContainerInstance<?> cont : toRemoveAll) {
                 cont.releaseAll(thisE.getServer().getPlayerManager(), true, thisE.getBlockPos());
+            }
+        }
+    }
+
+    /*@Inject(method = "collidesWithStateAtPos(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;)Z", at = @At("HEAD"), cancellable = true)
+    public void allowCapturedSpectatorsThroughNonOpaque(BlockPos pos, BlockState state, CallbackInfoReturnable<Boolean> cir) {
+        if (((Entity)(Object)this).isPlayer() && !state.isOpaque()) {
+            PlayerContainer.LOGGER.info("working");
+            GameProfile profile = ((PlayerEntity)(Object)this).getGameProfile();
+            if (((PlayerEntity)(Object)this).isSpectator() && ContainerInstance.players.containsKey(profile)) {
+                ContainerInstance<?> conti = ContainerInstance.containers.get(ContainerInstance.players.get(profile));
+                if (conti.getContainer() instanceof SpectatorContainer) {
+                    // if this player is captured in a SpectatorContainer, don't make noises
+                    cir.setReturnValue(false);
+                }
+            }
+        }
+    }*/ // doesn't work for some reason
+
+    @Inject(method = "findCollisionsForMovement(Lnet/minecraft/entity/Entity;Lnet/minecraft/world/World;Ljava/util/List;Lnet/minecraft/util/math/Box;)Ljava/util/List;", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;getWorldBorder()Lnet/minecraft/world/border/WorldBorder;"))
+    private static void addContainerRadiusCollision(Entity entity, World world, List<VoxelShape> regularCollisions, Box movingEntityBoundingBox, CallbackInfoReturnable<List<VoxelShape>> cir, @Local LocalRef<ImmutableList.Builder<VoxelShape>> builder) {
+        if (entity instanceof PlayerEntity player) {
+            GameProfile profile = player.getGameProfile();
+            if (player.isSpectator() && ContainerInstance.players.containsKey(profile)) {
+                ContainerInstance<?> conti = ContainerInstance.containers.get(ContainerInstance.players.get(profile));
+                if (conti.getContainer() instanceof SpectatorContainer spec) {
+                    Vec3d pos = conti.getBlockPos().toCenterPos();
+                    double hr = spec.getHorizontalRadius();
+                    double vr = spec.getVerticalRadius();
+                    builder.set(builder.get().add(VoxelShapes.combineAndSimplify(VoxelShapes.UNBOUNDED, VoxelShapes.cuboid(Math.floor(pos.getX()-hr), Math.floor(pos.getY()-vr), Math.floor(pos.getZ()-hr), Math.ceil(pos.getX()+hr), Math.ceil(pos.getY()+vr), Math.ceil(pos.getZ()+hr)), BooleanBiFunction.ONLY_FIRST)));
+                }
             }
         }
     }

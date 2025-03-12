@@ -78,7 +78,7 @@ public class PlayerContainer implements ModInitializer {
 	}
 
 	public static void cleanContainers(PlayerManager players) {
-		LOGGER.info("Cleaning containers");
+		//LOGGER.info("Cleaning containers");
 		Set<UUID> toRemove = new HashSet<UUID>();
 		for (Entry<UUID, ContainerInstance<?>> entry : ContainerInstance.containers.entrySet()) {
 			if (entry.getValue().getPlayerCount() == 0 && !ContainerInstance.playersToRecapture.values().contains(entry.getKey()) && !ContainerInstance.playersToRelease.values().contains(entry.getKey())) {
@@ -87,7 +87,7 @@ public class PlayerContainer implements ModInitializer {
 			}
 		}
 		for (UUID cont : toRemove) {
-			LOGGER.info("Removing "+cont.toString());
+			//LOGGER.info("Removing "+cont.toString());
 			ContainerInstance.containers.remove(cont);
 		}
 		sendCIPtoAll(players);

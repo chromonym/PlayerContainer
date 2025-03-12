@@ -63,12 +63,11 @@ public class PlayerContainerClient implements ClientModInitializer {
 					ContainerInstance.players.clear();
 					payload.containers().forEach((uuid, container) -> {
 						ContainerInstance.containers.put(uuid, container);
-						PlayerContainer.LOGGER.info("Recieved "+uuid.toString()+" ("+container.getContainerKey()+")");
+						//PlayerContainer.LOGGER.info("Recieved "+uuid.toString()+" ("+container.getContainerKey()+")");
 					});
 					payload.players().forEach((player, container) -> {
 						ContainerInstance.players.put(player, container);
-						PlayerContainer.LOGGER.info("Recieved "+
-							player.getName()+" in "+container.toString());
+						//PlayerContainer.LOGGER.info("Recieved "+ player.getName()+" in "+container.toString());
 					});
 				}
 			});

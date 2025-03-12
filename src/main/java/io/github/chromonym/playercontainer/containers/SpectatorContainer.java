@@ -6,6 +6,8 @@ import com.mojang.datafixers.util.Either;
 import dev.doublekekse.area_lib.Area;
 import dev.doublekekse.area_lib.AreaLib;
 import io.github.chromonym.playercontainer.PlayerContainer;
+import net.minecraft.block.BlockRenderType;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.Portal;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
@@ -14,6 +16,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.BlockView;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
@@ -33,6 +36,14 @@ public class SpectatorContainer extends AbstractContainer {
         this.verticalRadius = verticalRadius;
     }
 
+    public double getHorizontalRadius() {
+        return horizontalRadius;
+    }
+
+    public double getVerticalRadius() {
+        return verticalRadius;
+    }
+
     @Override
     public void onCapture(PlayerEntity player, ContainerInstance<?> ci) {
         player.setSilent(true);
@@ -48,8 +59,7 @@ public class SpectatorContainer extends AbstractContainer {
                 }
             }).ifRight(blockEntity -> {
                 if (blockEntity != null) {
-                    serverPlayer.setCameraEntity(null);
-                    //player.teleportTo(new TeleportTarget((ServerWorld)blockEntity.getWorld(), blockEntity.getPos().toCenterPos().add(0, -player.getEyeHeight(player.getPose()), 0), Vec3d.ZERO, player.getYaw(), player.getPitch(), blockEntity.getWorld() == player.getWorld() ? TeleportTarget.NO_OP : TeleportTarget.SEND_TRAVEL_THROUGH_PORTAL_PACKET));
+                    moveToNewBlockEntity(serverPlayer, blockEntity);
                     //Vec3d blockPos = blockEntity.getPos().toCenterPos();
                     //serverPlayer.teleport((ServerWorld)blockEntity.getWorld(), blockPos.getX(), blockPos.getY()-1, blockPos.getZ(), player.getYaw(), player.getPitch());
                 }
@@ -85,16 +95,16 @@ public class SpectatorContainer extends AbstractContainer {
                         ServerPlayerEntity player = blockEntity.getWorld().getServer().getPlayerManager().getPlayer(profile.getId());
                         if (player != null && player.isSpectator() && player.getCameraEntity() != null && player.getCameraEntity() != player) {
                             // if a player is in spectator and spectating something (entity -> blockEntity or blockEntity -> blockEntity)
-                            player.setCameraEntity(null);
-                            //player.teleportTo(new TeleportTarget((ServerWorld)blockEntity.getWorld(), blockEntity.getPos().toCenterPos().add(0, -player.getEyeHeight(player.getPose()), 0), Vec3d.ZERO, player.getYaw(), player.getPitch(), blockEntity.getWorld() == player.getWorld() ? TeleportTarget.NO_OP : TeleportTarget.SEND_TRAVEL_THROUGH_PORTAL_PACKET));
+                            moveToNewBlockEntity(player, blockEntity);
                             //Vec3d blockPos = blockEntity.getPos().toCenterPos();
                             //player.teleport((ServerWorld)blockEntity.getWorld(), blockPos.getX(), blockPos.getY()-player.getEyeHeight(player.getPose())+0.5, blockPos.getZ(), player.getYaw(), player.getPitch());
                         }
-                        /*oldOwner.ifRight(oldBlockEntity -> {
-                            if (player != null && oldBlockEntity != null && isWithinBlock(player.getEyePos(), oldBlockEntity.getPos())) {
-                                player.teleportTo(new TeleportTarget((ServerWorld)blockEntity.getWorld(), blockEntity.getPos().toCenterPos().add(0, -player.getEyeHeight(player.getPose()), 0), Vec3d.ZERO, player.getYaw(), player.getPitch(), blockEntity.getWorld() == player.getWorld() ? TeleportTarget.NO_OP : TeleportTarget.SEND_TRAVEL_THROUGH_PORTAL_PACKET));
+                        oldOwner.ifRight(oldBlockEntity -> {
+                            if (player != null && oldBlockEntity != null) {
+                                // if player is inside old block entity
+                                moveToNewBlockEntity(player, blockEntity);
                             }
-                        });*/
+                        });
                 }
             }).ifLeft(entity -> {
                 ServerPlayerEntity player = entity.getServer().getPlayerManager().getPlayer(profile.getId());
@@ -152,9 +162,8 @@ public class SpectatorContainer extends AbstractContainer {
                 if (blockEntity != null) {
                     // && blockEntity.getWorld().getBlockEntity(blockEntity.getPos()) != null && blockEntity.getWorld().getBlockEntity(blockEntity.getPos()).getType() == blockEntity.getType()
                     if (player.getCameraEntity() != null && player.getCameraEntity() != player) {
-                        player.setCameraEntity(null);
-                        //player.teleportTo(new TeleportTarget((ServerWorld)blockEntity.getWorld(), blockEntity.getPos().toCenterPos().add(0, -player.getEyeHeight(player.getPose()), 0), Vec3d.ZERO, player.getYaw(), player.getPitch(), blockEntity.getWorld() == player.getWorld() ? TeleportTarget.NO_OP : TeleportTarget.SEND_TRAVEL_THROUGH_PORTAL_PACKET));
-                        //player.teleport((ServerWorld)blockEntity.getWorld(), blockPos.getX(), blockPos.getY()-player.getEyeHeight(player.getPose()), blockPos.getZ(), player.getYaw(), player.getPitch());
+                        // if owner is a block entity but player is trying to spectate something
+                        moveToNewBlockEntity(player, blockEntity);
                     }
                     restrictDistance(player, blockEntity.getPos().toCenterPos(), blockEntity.getWorld());
                 } else {
@@ -188,27 +197,27 @@ public class SpectatorContainer extends AbstractContainer {
             playerY = target.getY();
             playerZ = target.getZ();
         } else {
-            if (playerX > target.getX() + horizontalRadius) {
-                playerX = target.getX() + horizontalRadius;
+            if (playerX > target.getX() + horizontalRadius + 1) {
+                playerX = target.getX() + horizontalRadius - 1;
                 shouldTeleport = true;
-            } else if (playerX < target.getX() - horizontalRadius) {
-                playerX = target.getX() - horizontalRadius;
-                shouldTeleport = true;
-            }
-    
-            if (playerY > target.getY() + verticalRadius) {
-                playerY = target.getY() + verticalRadius;
-                shouldTeleport = true;
-            } else if (playerY < target.getY() - verticalRadius) {
-                playerY = target.getY() - verticalRadius;
+            } else if (playerX < target.getX() - horizontalRadius - 1) {
+                playerX = target.getX() - horizontalRadius + 1;
                 shouldTeleport = true;
             }
     
-            if (playerZ > target.getZ() + horizontalRadius) {
-                playerZ = target.getZ() + horizontalRadius;
+            if (playerY > target.getY() + verticalRadius + 1) {
+                playerY = target.getY() + verticalRadius - 1;
                 shouldTeleport = true;
-            } else if (playerZ < target.getZ() - horizontalRadius) {
-                playerZ = target.getZ() - horizontalRadius;
+            } else if (playerY < target.getY() - verticalRadius - 1) {
+                playerY = target.getY() - verticalRadius + 1;
+                shouldTeleport = true;
+            }
+    
+            if (playerZ > target.getZ() + horizontalRadius + 1) {
+                playerZ = target.getZ() + horizontalRadius - 1;
+                shouldTeleport = true;
+            } else if (playerZ < target.getZ() - horizontalRadius - 1) {
+                playerZ = target.getZ() - horizontalRadius + 1;
                 shouldTeleport = true;
             }
         }
@@ -220,11 +229,22 @@ public class SpectatorContainer extends AbstractContainer {
         return player;
     }
 
-    public static boolean isWithinBlock(Vec3d eyePos, BlockPos blockPos) {
-        Vec3d blockVec = blockPos.toCenterPos();
-        return Math.abs(blockVec.getX() - eyePos.getX()) <= 0.5 && 
-            Math.abs(blockVec.getY() - eyePos.getY()) <= 0.5 && 
-            Math.abs(blockVec.getZ() - eyePos.getZ()) <= 0.5;
+    public static boolean isCameraSafe(BlockView view, BlockPos pos) {
+        return isCameraSafe(view.getBlockState(pos));
+    }
+
+    public static boolean isCameraSafe(BlockState state) {
+		return (!state.isOpaque() || state.getRenderType() != BlockRenderType.MODEL);
+	}
+
+    public static void moveToNewBlockEntity(ServerPlayerEntity player, BlockEntity blockEntity) {
+        player.setCameraEntity(null);
+        if (isCameraSafe(player.getWorld(), blockEntity.getPos()) && isCameraSafe(player.getWorld(), blockEntity.getPos().add(0, -1, 0))) {
+            player.teleportTo(new TeleportTarget((ServerWorld)blockEntity.getWorld(), blockEntity.getPos().toCenterPos().add(0, -player.getEyeHeight(player.getPose()), 0), Vec3d.ZERO, player.getYaw(), player.getPitch(), blockEntity.getWorld() == player.getWorld() ? TeleportTarget.NO_OP : TeleportTarget.SEND_TRAVEL_THROUGH_PORTAL_PACKET));
+            //player.teleport((ServerWorld)blockEntity.getWorld(), blockPos.getX(), blockPos.getY()-player.getEyeHeight(player.getPose()), blockPos.getZ(), player.getYaw(), player.getPitch());
+        } else if (isCameraSafe(player.getWorld(), blockEntity.getPos()) && isCameraSafe(player.getWorld(), blockEntity.getPos().add(0, 1, 0))) {
+            player.teleportTo(new TeleportTarget((ServerWorld)blockEntity.getWorld(), blockEntity.getPos().toBottomCenterPos(), Vec3d.ZERO, player.getYaw(), player.getPitch(), blockEntity.getWorld() == player.getWorld() ? TeleportTarget.NO_OP : TeleportTarget.SEND_TRAVEL_THROUGH_PORTAL_PACKET));
+        }
     }
     
 }

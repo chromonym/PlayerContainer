@@ -38,13 +38,13 @@ public abstract class PlayerEntityMixin {
     @Inject(method = "playStepSound(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;)V", at = @At("HEAD"), cancellable = true)
     public void makeCapturedSpectatorsQuieter(BlockPos pos, BlockState state, CallbackInfo cir) {
         GameProfile profile = ((PlayerEntity)(Object)this).getGameProfile();
-            if (((PlayerEntity)(Object)this).isSpectator() && ContainerInstance.players.containsKey(profile)) {
-                ContainerInstance<?> conti = ContainerInstance.containers.get(ContainerInstance.players.get(profile));
-                if (conti.getContainer() instanceof SpectatorContainer) {
-                    // if this player is captured in a SpectatorContainer, don't make noises
-                    cir.cancel();
-                }
+        if (((PlayerEntity)(Object)this).isSpectator() && ContainerInstance.players.containsKey(profile)) {
+            ContainerInstance<?> conti = ContainerInstance.containers.get(ContainerInstance.players.get(profile));
+            if (conti.getContainer() instanceof SpectatorContainer) {
+                // if this player is captured in a SpectatorContainer, don't make noises
+                cir.cancel();
             }
+        }
     }
 
 }

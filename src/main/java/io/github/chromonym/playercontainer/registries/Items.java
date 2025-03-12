@@ -21,11 +21,11 @@ public class Items {
     public static final SimpleContainerItem<SpectatorContainer> basicContainer = register(new SimpleContainerItem<SpectatorContainer>(Containers.SPECTATOR_CONTAINER, new Item.Settings().rarity(Rarity.RARE)), "basic_container");
     public static final SimpleContainerItem<SpectatorContainer> largeContainer = register(new SimpleContainerItem<SpectatorContainer>(Containers.LARGE_SPECTATOR_CONTAINER, new Item.Settings().rarity(Rarity.RARE)), "large_container");
     public static final SimpleContainerItem<SpectatorContainer> hugeContainer = register(new SimpleContainerItem<SpectatorContainer>(Containers.HUGE_SPECTATOR_CONTAINER, new Item.Settings().rarity(Rarity.RARE)), "huge_container");
-    public static final SimpleContainerItem<SpectatorContainer> singularityContainer = register(new SimpleContainerItem<SpectatorContainer>(Containers.INFINITE_SPECTATOR_CONTAINER, new Item.Settings().rarity(Rarity.RARE)), "singularity_container");
+    public static final SimpleContainerItem<SpectatorContainer> singularityContainer = register(new SimpleContainerItem<SpectatorContainer>(Containers.INFINITE_SPECTATOR_CONTAINER, new Item.Settings().rarity(Rarity.EPIC)), "singularity_container");
     // Special Containers
     public static final NamedSingleContainerItem<SpectatorContainer> loosePlayer = register(new NamedSingleContainerItem<SpectatorContainer>(Containers.SPECTATOR_CONTAINER, new Item.Settings().rarity(Rarity.RARE)), "loose_player");
     public static final CageBlockItem cageBlock = register(new CageBlockItem(Containers.CAGE_SPECTATOR_CONTAINER, new Item.Settings().rarity(Rarity.RARE)), "cage");
-    public static final SelfContainerItem<SpectatorContainer> selfContainer = register(new SelfContainerItem<SpectatorContainer>(Containers.SPECTATOR_CONTAINER, new Item.Settings()), "self_container");
+    public static final SelfContainerItem<SpectatorContainer> selfContainer = register(new SelfContainerItem<SpectatorContainer>(Containers.SPECTATOR_CONTAINER, new Item.Settings().rarity(Rarity.RARE)), "self_container");
     // Other Items
     public static final NamedItem playerEssence = register(new NamedItem(new Item.Settings()), "player_essence");
     public static final NamedItem playerEssenceBottle = register(new NamedItem(new Item.Settings().recipeRemainder(net.minecraft.item.Items.GLASS_BOTTLE)), "player_essence_bottle");
