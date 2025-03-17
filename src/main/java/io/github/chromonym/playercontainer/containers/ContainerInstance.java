@@ -58,6 +58,7 @@ public class ContainerInstance<C extends AbstractContainer> {
         RegistryKey.createPacketCodec(Containers.REGISTRY_KEY), ContainerInstance::getContainerKey,
         Uuids.PACKET_CODEC, ContainerInstance::getID,
         PacketCodecs.collection(HashSet::new, PacketCodecs.GAME_PROFILE), ContainerInstance::getCachedPlayers,
+        PacketCodecs.either(PacketCodecs.INTEGER, BlockPos.PACKET_CODEC), ContainerInstance::getOwnerDetail,
         ContainerInstance::new);
     
 
@@ -67,14 +68,20 @@ public class ContainerInstance<C extends AbstractContainer> {
     private BlockEntity ownerBlockEntity;
     private BlockPos cachedBlockPos;
     public Set<GameProfile> playerCache = new HashSet<GameProfile>();
+    public Integer tempOwnerId; // used for client-side stuff - ignore otherwise
 
     public ContainerInstance(C container) {
         this(container, UUID.randomUUID());
     }
 
-    public ContainerInstance(RegistryKey<AbstractContainer> containerKey, UUID id, Set<GameProfile> playerCache) {
+    public ContainerInstance(RegistryKey<AbstractContainer> containerKey, UUID id, Set<GameProfile> playerCache, Either<Integer,BlockPos> cachedOwner) {
         this((C)Containers.REGISTRY.get(containerKey), id); // surely it's fiiiiiine
         this.playerCache = playerCache;
+        cachedOwner.ifLeft(tempID -> {
+            this.tempOwnerId = tempID;
+        }).ifRight(blockPos -> {
+            this.cachedBlockPos = blockPos;
+        });
     }
 
     public ContainerInstance(C container, UUID id, List<GameProfile> players, BlockPos cachedPos) {
@@ -94,6 +101,9 @@ public class ContainerInstance<C extends AbstractContainer> {
     public UUID getID() {
         UUID uid = containers.inverse().get(this);
         if (uid == null) {
+            if (ID == null) {
+                return UUID.fromString("00000000-0000-0000-0000-000000000000");
+            }
             return ID;
         } else {
             ID = uid;
@@ -185,6 +195,14 @@ public class ContainerInstance<C extends AbstractContainer> {
         }
     }
 
+    public Either<Integer, BlockPos> getOwnerDetail() {
+        if (ownerEntity != null) {
+            return Either.left(ownerEntity.getId());
+        } else {
+            return Either.right(getBlockPos());
+        }
+    }
+
     public BlockPos getBlockPos() {
         if (ownerEntity != null) {
             return ownerEntity.getBlockPos();
@@ -192,7 +210,10 @@ public class ContainerInstance<C extends AbstractContainer> {
         if (cachedBlockPos != null) {
             return cachedBlockPos;
         }
-        return ownerBlockEntity.getPos();
+        if (ownerBlockEntity != null) {
+            return ownerBlockEntity.getPos();
+        }
+        return BlockPos.ORIGIN; // fallback to hopefully also stop crashes???
     }
 
     public World getWorld() {
@@ -339,6 +360,13 @@ public class ContainerInstance<C extends AbstractContainer> {
             }
         }
         return success;
+    }
+
+    public void setOwnerClient(World world) {
+        if (this.tempOwnerId != null) {
+            this.ownerEntity = world.getEntityById(this.tempOwnerId);
+            this.ownerBlockEntity = null;
+        }
     }
 
     public void setOwner(Entity entity) {

@@ -118,6 +118,9 @@ public abstract class EntityMixin {
                 ContainerInstance<?> conti = ContainerInstance.containers.get(ContainerInstance.players.get(profile));
                 if (conti.getContainer() instanceof SpectatorContainer spec) {
                     Vec3d pos = conti.getBlockPos().toCenterPos();
+                    if (conti.getOwner().left().isPresent()) {
+                        pos = conti.getOwner().left().get().getPos();
+                    }
                     double hr = spec.getHorizontalRadius();
                     double vr = spec.getVerticalRadius();
                     builder.set(builder.get().add(VoxelShapes.combineAndSimplify(VoxelShapes.UNBOUNDED, VoxelShapes.cuboid(Math.floor(pos.getX()-hr), Math.floor(pos.getY()-vr), Math.floor(pos.getZ()-hr), Math.ceil(pos.getX()+hr), Math.ceil(pos.getY()+vr), Math.ceil(pos.getZ()+hr)), BooleanBiFunction.ONLY_FIRST)));

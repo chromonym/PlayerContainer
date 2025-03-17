@@ -60,7 +60,7 @@ public class CageSpectatorContainer extends SpectatorContainer {
         serverPlayer.changeGameMode(GameMode.ADVENTURE);
     }
 
-    public static void onBreakBlock(ContainerInstance<?> ci, PlayerManager players, Entity tempOwner) {
+    public static void onBreakBlock(ContainerInstance<?> ci, PlayerManager players) {
         Set<GameProfile> offlinePlayers = new HashSet<GameProfile>();
         ci.getPlayers().forEach(profile -> {
             PlayerEntity player = players.getPlayer(profile.getId());

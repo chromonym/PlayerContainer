@@ -43,6 +43,10 @@ public class CageBlockEntity extends BlockEntity implements ContainerInstanceHol
         return containerId;
     }
     
+    public boolean getFragile() {
+        return fragile;
+    }
+    
     @Override
     protected void writeNbt(NbtCompound nbt, WrapperLookup registryLookup) {
         nbt.putUuid("containerId", containerId == null ? UUID.fromString("00000000-0000-0000-0000-000000000000"): containerId);
@@ -137,7 +141,7 @@ public class CageBlockEntity extends BlockEntity implements ContainerInstanceHol
             ItemStack toReturn = getLoosePlayer();
             this.containerId = null;
             if (!this.getWorld().isClient) {
-                CageSpectatorContainer.onBreakBlock(ci, this.getWorld().getServer().getPlayerManager(), null);
+                CageSpectatorContainer.onBreakBlock(ci, this.getWorld().getServer().getPlayerManager());
             }
             ContainerInstance.containers.remove(containerId);
             Items.loosePlayer.getOrMakeContainerInstance(toReturn, world); // hopefully this doesn't totally break everything :3

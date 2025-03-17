@@ -8,6 +8,8 @@ import io.github.chromonym.playercontainer.containers.ContainerInstance;
 import io.github.chromonym.playercontainer.items.CageBlockItem;
 import io.github.chromonym.playercontainer.items.ContainerInstanceHolder;
 import io.github.chromonym.playercontainer.registries.BlockEntities;
+import io.github.chromonym.playercontainer.registries.ItemComponents;
+import io.github.chromonym.playercontainer.registries.Items;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
@@ -17,6 +19,7 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.block.piston.PistonBehavior;
+import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -69,8 +72,16 @@ public class CageBlock extends BlockWithEntity {
     public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
         if (world.getBlockEntity(pos) instanceof CageBlockEntity cbe && !world.isClient) {
             ContainerInstance<?> ci = cbe.getOrMakeContainerInstance(cbe, world);
-            CageSpectatorContainer.onBreakBlock(ci, world.getServer().getPlayerManager(), player);
-            if (player.isCreative()) {
+            CageSpectatorContainer.onBreakBlock(ci, world.getServer().getPlayerManager());
+            if (!cbe.getFragile() && (!player.isCreative() || ci.getPlayerCount() > 0)) {
+                ItemStack stack = new ItemStack(Items.cageBlock);
+                stack.set(ItemComponents.BREAK_ON_RELEASE, cbe.getFragile());
+                stack.set(ItemComponents.CONTAINER_ID, cbe.getContainerId());
+                ItemEntity itemEntity = new ItemEntity(world, (double)pos.getX() + 0.5, (double)pos.getY() + 0.5, (double)pos.getZ() + 0.5, stack);
+                itemEntity.setToDefaultPickupDelay();
+                world.spawnEntity(itemEntity);
+                ci.setOwner(itemEntity); // should be done automatically, but just in case
+            } else {
                 ci.destroy(world.getServer().getPlayerManager(), pos);
             }
         }

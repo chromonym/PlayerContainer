@@ -5,12 +5,14 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.mojang.authlib.GameProfile;
 
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
 import io.github.chromonym.playercontainer.containers.SpectatorContainer;
 import net.minecraft.block.BlockState;
+import net.minecraft.entity.Entity.MoveEffect;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 
@@ -43,6 +45,18 @@ public abstract class PlayerEntityMixin {
             if (conti.getContainer() instanceof SpectatorContainer) {
                 // if this player is captured in a SpectatorContainer, don't make noises
                 cir.cancel();
+            }
+        }
+    }
+
+    @Inject(method = "getMoveEffect()Lnet/minecraft/entity/Entity$MoveEffect;", at = @At("HEAD"), cancellable = true)
+    public void makeCapturedSpectatorsEvenQuieter(CallbackInfoReturnable<MoveEffect> cir) {
+        GameProfile profile = ((PlayerEntity)(Object)this).getGameProfile();
+        if (((PlayerEntity)(Object)this).isSpectator() && ContainerInstance.players.containsKey(profile)) {
+            ContainerInstance<?> conti = ContainerInstance.containers.get(ContainerInstance.players.get(profile));
+            if (conti.getContainer() instanceof SpectatorContainer) {
+                // if this player is captured in a SpectatorContainer, don't make noises
+                cir.setReturnValue(MoveEffect.NONE);
             }
         }
     }
