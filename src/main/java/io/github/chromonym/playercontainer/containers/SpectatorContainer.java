@@ -197,29 +197,28 @@ public class SpectatorContainer extends AbstractContainer {
             playerY = target.getY();
             playerZ = target.getZ();
         } else {
-            float halfPlayerWidth = (player.getWidth()/2);
-            if (playerX > target.getX() + horizontalRadius + 0.1) {
-                playerX = target.getX() + horizontalRadius - halfPlayerWidth;
+            double halfWidth = player.getWidth() / 2;
+            if (playerX > target.getX() + horizontalRadius - halfWidth + 0.01) {
+                playerX = target.getX() + horizontalRadius - halfWidth - 0.01;
                 shouldTeleport = true;
-            } else if (playerX < target.getX() - horizontalRadius - 0.1) {
-                //TODO: why does east and north (positive x and z) work but not south and west (negative) ???
-                playerX = target.getX() - horizontalRadius + halfPlayerWidth;
-                shouldTeleport = true;
-            }
-    
-            if (playerY > target.getY() + verticalRadius + 0.1) {
-                playerY = target.getY() + verticalRadius - halfPlayerWidth;
-                shouldTeleport = true;
-            } else if (playerY < target.getY() - verticalRadius - 0.1) {
-                playerY = target.getY() - verticalRadius + halfPlayerWidth;
+            } else if (playerX < target.getX() - horizontalRadius + halfWidth - 0.01) {
+                playerX = target.getX() - horizontalRadius + halfWidth + 0.01;
                 shouldTeleport = true;
             }
     
-            if (playerZ > target.getZ() + horizontalRadius + 0.1) {
-                playerZ = target.getZ() + horizontalRadius - halfPlayerWidth;
+            if (playerY > target.getY() + verticalRadius - player.getHeight() + 0.01) {
+                playerY = target.getY() + verticalRadius - player.getHeight() - 0.01;
                 shouldTeleport = true;
-            } else if (playerZ < target.getZ() - horizontalRadius - 0.1) {
-                playerZ = target.getZ() - horizontalRadius + halfPlayerWidth;
+            } else if (playerY < target.getY() - verticalRadius - 0.01) {
+                playerY = target.getY() - verticalRadius + 0.01;
+                shouldTeleport = true;
+            }
+    
+            if (playerZ > target.getZ() + horizontalRadius - halfWidth + 0.01) {
+                playerZ = target.getZ() + horizontalRadius - halfWidth - 0.01;
+                shouldTeleport = true;
+            } else if (playerZ < target.getZ() - horizontalRadius + halfWidth - 0.01) {
+                playerZ = target.getZ() - horizontalRadius + halfWidth + 0.01;
                 shouldTeleport = true;
             }
         }

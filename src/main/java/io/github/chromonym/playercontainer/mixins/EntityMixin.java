@@ -117,13 +117,15 @@ public abstract class EntityMixin {
             if (player.isSpectator() && ContainerInstance.players.containsKey(profile)) {
                 ContainerInstance<?> conti = ContainerInstance.containers.get(ContainerInstance.players.get(profile));
                 if (conti.getContainer() instanceof SpectatorContainer spec) {
-                    Vec3d pos = conti.getBlockPos().toCenterPos();
+                    Vec3d pos;
                     if (conti.getOwner().left().isPresent()) {
                         pos = conti.getOwner().left().get().getPos();
+                    } else {
+                        pos = conti.getBlockPos().toCenterPos();
                     }
                     double hr = spec.getHorizontalRadius();
                     double vr = spec.getVerticalRadius();
-                    builder.set(builder.get().add(VoxelShapes.combineAndSimplify(VoxelShapes.UNBOUNDED, VoxelShapes.cuboid(Math.floor(pos.getX()-hr), Math.floor(pos.getY()-vr), Math.floor(pos.getZ()-hr), Math.ceil(pos.getX()+hr), Math.ceil(pos.getY()+vr), Math.ceil(pos.getZ()+hr)), BooleanBiFunction.ONLY_FIRST)));
+                    builder.set(builder.get().add(VoxelShapes.combineAndSimplify(VoxelShapes.UNBOUNDED, VoxelShapes.cuboid(pos.getX()-hr, pos.getY()-vr, pos.getZ()-hr, pos.getX()+hr, pos.getY()+vr, pos.getZ()+hr), BooleanBiFunction.ONLY_FIRST)));
                 }
             }
         }
