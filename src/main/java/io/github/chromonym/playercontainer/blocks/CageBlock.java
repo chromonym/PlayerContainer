@@ -2,7 +2,7 @@ package io.github.chromonym.playercontainer.blocks;
 
 import com.mojang.serialization.MapCodec;
 
-import io.github.chromonym.blockentities.CageBlockEntity;
+import io.github.chromonym.playercontainer.blockentities.CageBlockEntity;
 import io.github.chromonym.playercontainer.containers.CageSpectatorContainer;
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
 import io.github.chromonym.playercontainer.items.CageBlockItem;

@@ -5,8 +5,8 @@ import java.util.function.Consumer;
 
 import org.jetbrains.annotations.NotNull;
 
-import io.github.chromonym.blockentities.CageBlockEntity;
 import io.github.chromonym.playercontainer.PlayerContainer;
+import io.github.chromonym.playercontainer.blockentities.CageBlockEntity;
 import io.github.chromonym.playercontainer.containers.AbstractContainer;
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
 import io.github.chromonym.playercontainer.registries.ItemComponents;

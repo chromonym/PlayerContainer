@@ -8,8 +8,8 @@ import java.util.UUID;
 
 import com.mojang.authlib.GameProfile;
 
-import io.github.chromonym.blockentities.CageBlockEntity;
 import io.github.chromonym.playercontainer.PlayerContainer;
+import io.github.chromonym.playercontainer.blockentities.CageBlockEntity;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.attribute.EntityAttributeModifier.Operation;

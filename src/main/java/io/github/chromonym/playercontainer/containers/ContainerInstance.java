@@ -18,8 +18,8 @@ import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import io.github.chromonym.blockentities.CageBlockEntity;
 import io.github.chromonym.playercontainer.PlayerContainer;
+import io.github.chromonym.playercontainer.blockentities.CageBlockEntity;
 import io.github.chromonym.playercontainer.registries.Containers;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;

@@ -1,4 +1,4 @@
-package io.github.chromonym.blockentities;
+package io.github.chromonym.playercontainer.blockentities;
 
 import java.util.UUID;
 import java.util.stream.IntStream;

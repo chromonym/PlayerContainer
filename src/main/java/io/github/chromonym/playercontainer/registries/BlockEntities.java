@@ -1,7 +1,7 @@
 package io.github.chromonym.playercontainer.registries;
 
-import io.github.chromonym.blockentities.CageBlockEntity;
 import io.github.chromonym.playercontainer.PlayerContainer;
+import io.github.chromonym.playercontainer.blockentities.CageBlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
