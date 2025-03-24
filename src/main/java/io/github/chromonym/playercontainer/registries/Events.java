@@ -118,19 +118,39 @@ public class Events {
             }
         });
         ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player, origin, destination) -> {
+            Set<UUID> toRemove = new HashSet<UUID>();
             for (Entry<UUID, ContainerInstance<?>> entry : ContainerInstance.containers.entrySet()) {
                 if (entry.getValue().getContainer() instanceof SpectatorContainer) {
                     entry.getValue().getOwner().ifLeft(owner -> {
                         if (owner != null && owner.getUuid() == player.getUuid()) {
-                            for (GameProfile pe : entry.getValue().getPlayers()) {
+                            /*for (GameProfile pe : entry.getValue().getPlayers()) {
                                 ServerPlayerEntity capturedPlayer = destination.getServer().getPlayerManager().getPlayer(pe.getId());
                                 if (capturedPlayer != null && capturedPlayer.isSpectator() && capturedPlayer.getCameraEntity() != null && capturedPlayer.getCameraEntity() != capturedPlayer) {
                                     capturedPlayer.setCameraEntity(player);
                                 }
-                            }
+                            }*/
+                            toRemove.add(entry.getValue().getID());
                         }
                     });
                 }
+            }
+            for (UUID uuid : toRemove) {
+                ContainerInstance.containers.get(uuid).destroy(player.getServer().getPlayerManager(), ContainerInstance.containers.get(uuid).getCachedBlockPos());
+            }
+        });
+        ServerEntityWorldChangeEvents.AFTER_ENTITY_CHANGE_WORLD.register((originalEntity, newEntity, origin, destination) -> {
+            Set<UUID> toRemove = new HashSet<UUID>();
+            for (Entry<UUID, ContainerInstance<?>> entry : ContainerInstance.containers.entrySet()) {
+                if (entry.getValue().getContainer() instanceof SpectatorContainer) {
+                    entry.getValue().getOwner().ifLeft(owner -> {
+                        if (owner != null && owner.getUuid() == originalEntity.getUuid()) {
+                            toRemove.add(entry.getValue().getID());
+                        }
+                    });
+                }
+            }
+            for (UUID uuid : toRemove) {
+                ContainerInstance.containers.get(uuid).destroy(newEntity.getServer().getPlayerManager(), originalEntity.getBlockPos());
             }
         });
     }

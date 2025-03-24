@@ -205,15 +205,18 @@ public class ContainerInstance<C extends AbstractContainer> {
 
     public BlockPos getBlockPos() {
         if (ownerEntity != null) {
-            return ownerEntity.getBlockPos();
+            cachedBlockPos = ownerEntity.getBlockPos();
+        } else if (ownerBlockEntity != null) {
+            cachedBlockPos = ownerBlockEntity.getPos();
         }
         if (cachedBlockPos != null) {
             return cachedBlockPos;
         }
-        if (ownerBlockEntity != null) {
-            return ownerBlockEntity.getPos();
-        }
         return BlockPos.ORIGIN; // fallback to hopefully also stop crashes???
+    }
+
+    public BlockPos getCachedBlockPos() {
+        return cachedBlockPos;
     }
 
     public World getWorld() {

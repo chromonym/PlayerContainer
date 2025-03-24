@@ -98,7 +98,7 @@ public class PlayerContainer implements ModInitializer {
 		for (ContainerInstance<?> ci : ContainerInstance.containers.values()) {
 			Area invalidArea = AreaLib.getServerArea(players.getServer(), PlayerContainer.INVALID_AREA);
 			if (ci.getWorld() != null) {
-				if (ci.getWorld().getGameRules().getBoolean(PlayerContainer.RESTRICT_TO_BOOTH) && invalidArea != null && invalidArea.contains(ci.getWorld(), ci.getBlockPos().toCenterPos())) {
+				if (invalidArea != null && invalidArea.contains(ci.getWorld(), ci.getBlockPos().toCenterPos())) {
 					ci.releaseAll(players, false, ci.getBlockPos());
 				}
 			}

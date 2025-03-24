@@ -132,7 +132,7 @@ public class SpectatorContainer extends AbstractContainer {
         Area invalidArea = AreaLib.getServerArea(player.getServer(), PlayerContainer.INVALID_AREA);
         if (ci.getBlockPos().getY() < player.getWorld().getBottomY() // container is in the void
         || player.getWorld().getBlockState(ci.getBlockPos()).getBlock() instanceof Portal // container is inside a portal block
-        || (player.getWorld().getGameRules().getBoolean(PlayerContainer.RESTRICT_TO_BOOTH) && invalidArea != null && invalidArea.contains(player.getWorld(), ci.getBlockPos().toCenterPos()))) {
+        || (invalidArea != null && invalidArea.contains(player.getWorld(), ci.getBlockPos().toCenterPos()))) {
             // container is in a custom invalid area
             ci.release(player, false, ci.getBlockPos(), true);
         }
