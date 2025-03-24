@@ -76,6 +76,7 @@ public class ContainerInstance<C extends AbstractContainer> {
 
     public ContainerInstance(RegistryKey<AbstractContainer> containerKey, UUID id, Set<GameProfile> playerCache, Either<Integer,BlockPos> cachedOwner) {
         this((C)Containers.REGISTRY.get(containerKey), id); // surely it's fiiiiiine
+        // TODO fix this by implementing codecs for each container type (ough)
         this.playerCache = playerCache;
         cachedOwner.ifLeft(tempID -> {
             this.tempOwnerId = tempID;

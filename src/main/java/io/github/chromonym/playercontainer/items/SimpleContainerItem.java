@@ -22,7 +22,7 @@ public class SimpleContainerItem<C extends AbstractContainer> extends AbstractCo
     @Override
     public ActionResult useOnEntity(ItemStack stack, PlayerEntity user, LivingEntity entity, Hand hand) {
         ContainerInstance<?> cont = getOrMakeContainerInstance(user.getStackInHand(hand), user.getWorld());
-        if (cont != null && entity instanceof PlayerEntity player) {
+        if (!user.isSneaking() && cont != null && entity instanceof PlayerEntity player) {
             boolean bl = cont.getContainer().capture(player, cont);
             return ActionResult.success(bl);
         }
@@ -45,12 +45,10 @@ public class SimpleContainerItem<C extends AbstractContainer> extends AbstractCo
 
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-        if (user.isSneaking()) {
-            ContainerInstance<?> cont = getOrMakeContainerInstance(user.getStackInHand(hand), user.getWorld());
-            if (cont != null) {
-                doRelease(user.getStackInHand(hand), cont, world, user, hand, user.getBlockPos());
-                return TypedActionResult.success(user.getStackInHand(hand));
-            }
+        ContainerInstance<?> cont = getOrMakeContainerInstance(user.getStackInHand(hand), user.getWorld());
+        if (cont != null && (user.isSneaking() || cont.getPlayerCount() >= cont.getContainer().maxPlayers)) {
+            doRelease(user.getStackInHand(hand), cont, world, user, hand, user.getBlockPos());
+            return TypedActionResult.success(user.getStackInHand(hand));
         }
         return super.use(world, user, hand);
     }

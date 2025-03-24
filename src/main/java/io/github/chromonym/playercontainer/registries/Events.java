@@ -3,8 +3,6 @@ package io.github.chromonym.playercontainer.registries;
 import java.util.HashSet;
 import java.util.Map.Entry;
 
-import com.mojang.authlib.GameProfile;
-
 import dev.doublekekse.area_lib.Area;
 import dev.doublekekse.area_lib.AreaLib;
 

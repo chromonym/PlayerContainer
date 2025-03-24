@@ -82,9 +82,10 @@ public class CageBlockItem extends BlockItem implements ContainerInstanceHolder<
     @Override
     public ActionResult useOnEntity(ItemStack stack, PlayerEntity user, LivingEntity entity, Hand hand) {
         ContainerInstance<?> cont = getOrMakeContainerInstance(user.getStackInHand(hand), user.getWorld());
-        if (cont != null && entity instanceof PlayerEntity player) {
+        if (!user.isSneaking() && cont != null && entity instanceof PlayerEntity player) {
             boolean bl = cont.getContainer().capture(player, cont);
-            return bl ? ActionResult.SUCCESS : ActionResult.CONSUME;
+            return ActionResult.success(bl);
+
         }
         return super.useOnEntity(stack, user, entity, hand);
     }
@@ -96,7 +97,7 @@ public class CageBlockItem extends BlockItem implements ContainerInstanceHolder<
         Hand hand = context.getHand();
         ItemStack stack = user.getStackInHand(hand);
         ContainerInstance<?> cont = getOrMakeContainerInstance(stack, user.getWorld());
-        if (user.isSneaking() && cont != null) {
+        if (user.isSneaking() && cont != null && cont.getPlayerCount() > 0) {
             doRelease(stack, cont, world, user, hand, context.getBlockPos().add(context.getSide().getVector()));
             return ActionResult.SUCCESS;
         }
@@ -113,12 +114,10 @@ public class CageBlockItem extends BlockItem implements ContainerInstanceHolder<
 
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-        if (user.isSneaking()) {
-            ContainerInstance<?> cont = getOrMakeContainerInstance(user.getStackInHand(hand), user.getWorld());
-            if (cont != null) {
-                doRelease(user.getStackInHand(hand), cont, world, user, hand, user.getBlockPos());
-                return TypedActionResult.success(user.getStackInHand(hand));
-            }
+        ContainerInstance<?> cont = getOrMakeContainerInstance(user.getStackInHand(hand), user.getWorld());
+        if (cont != null) {
+            doRelease(user.getStackInHand(hand), cont, world, user, hand, user.getBlockPos());
+            return TypedActionResult.success(user.getStackInHand(hand));
         }
         return super.use(world, user, hand);
     }
