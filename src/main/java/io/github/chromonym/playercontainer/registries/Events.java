@@ -133,7 +133,10 @@ public class Events {
                 }
             }
             for (UUID uuid : toRemove) {
-                ContainerInstance.containers.get(uuid).destroy(player.getServer().getPlayerManager(), ContainerInstance.containers.get(uuid).getCachedBlockPos());
+                ContainerInstance<?> conti = ContainerInstance.containers.get(uuid);
+                if (conti != null) {
+                    conti.destroy(player.getServer().getPlayerManager(), conti.getCachedBlockPos());
+                }
             }
         });
         ServerEntityWorldChangeEvents.AFTER_ENTITY_CHANGE_WORLD.register((originalEntity, newEntity, origin, destination) -> {
@@ -148,7 +151,10 @@ public class Events {
                 }
             }
             for (UUID uuid : toRemove) {
-                ContainerInstance.containers.get(uuid).destroy(newEntity.getServer().getPlayerManager(), originalEntity.getBlockPos());
+                ContainerInstance<?> conti = ContainerInstance.containers.get(uuid);
+                if (conti != null) {
+                    conti.destroy(newEntity.getServer().getPlayerManager(), originalEntity.getBlockPos());
+                }
             }
         });
     }

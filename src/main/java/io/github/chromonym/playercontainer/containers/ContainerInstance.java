@@ -296,7 +296,9 @@ public class ContainerInstance<C extends AbstractContainer> {
             PlayerEntity player = world.getServer().getPlayerManager().getPlayer(entry.getKey());
             if (player != null) {
                 ContainerInstance<?> cont = containers.get(entry.getValue());
-                uncaged.put(player, cont);
+                if (cont != null) {
+                    uncaged.put(player, cont);
+                }
             }
         }
         for (Entry<PlayerEntity,ContainerInstance<?>> entry : uncaged.entrySet()) {

@@ -24,7 +24,7 @@ public class ClientPlayerInteractionManagerMixin {
         GameProfile profile = client.getGameProfile();
         if (ContainerInstance.players.containsKey(profile)) {
             ContainerInstance<?> conti = ContainerInstance.containers.get(ContainerInstance.players.get(profile));
-            if (conti.getContainer() instanceof SpectatorContainer) {
+            if (conti != null && conti.getContainer() instanceof SpectatorContainer) {
                 // if this player is captured in a SpectatorContainer, let them land etc
                 cir.setReturnValue(false);
             }

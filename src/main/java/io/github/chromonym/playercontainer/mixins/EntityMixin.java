@@ -116,7 +116,7 @@ public abstract class EntityMixin {
             GameProfile profile = player.getGameProfile();
             if (player.isSpectator() && ContainerInstance.players.containsKey(profile)) {
                 ContainerInstance<?> conti = ContainerInstance.containers.get(ContainerInstance.players.get(profile));
-                if (conti.getContainer() instanceof SpectatorContainer spec) {
+                if (conti != null && conti.getContainer() instanceof SpectatorContainer spec) {
                     Vec3d pos;
                     if (conti.getOwner().left().isPresent()) {
                         pos = conti.getOwner().left().get().getPos();

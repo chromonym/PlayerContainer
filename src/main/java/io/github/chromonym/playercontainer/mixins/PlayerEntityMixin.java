@@ -24,7 +24,7 @@ public abstract class PlayerEntityMixin {
         // i fucking love mixins!!!!!!11!1!!!11
         if (ContainerInstance.players.containsKey(pe.getGameProfile()) && !b) {
             ContainerInstance<?> conti = ContainerInstance.containers.get(ContainerInstance.players.get(pe.getGameProfile()));
-            if (conti.getContainer() instanceof SpectatorContainer) {
+            if (conti != null && conti.getContainer() instanceof SpectatorContainer) {
                 // if this player is captured in a SpectatorContainer, don't let them move through blocks (except the container block)
                 conti.getOwner().ifLeft(entity -> {
                     pe.noClip = false;
@@ -42,7 +42,7 @@ public abstract class PlayerEntityMixin {
         GameProfile profile = ((PlayerEntity)(Object)this).getGameProfile();
         if (((PlayerEntity)(Object)this).isSpectator() && ContainerInstance.players.containsKey(profile)) {
             ContainerInstance<?> conti = ContainerInstance.containers.get(ContainerInstance.players.get(profile));
-            if (conti.getContainer() instanceof SpectatorContainer) {
+            if (conti != null && conti.getContainer() instanceof SpectatorContainer) {
                 // if this player is captured in a SpectatorContainer, don't make noises
                 cir.cancel();
             }
@@ -54,7 +54,7 @@ public abstract class PlayerEntityMixin {
         GameProfile profile = ((PlayerEntity)(Object)this).getGameProfile();
         if (((PlayerEntity)(Object)this).isSpectator() && ContainerInstance.players.containsKey(profile)) {
             ContainerInstance<?> conti = ContainerInstance.containers.get(ContainerInstance.players.get(profile));
-            if (conti.getContainer() instanceof SpectatorContainer) {
+            if (conti != null && conti.getContainer() instanceof SpectatorContainer) {
                 // if this player is captured in a SpectatorContainer, don't make noises
                 cir.setReturnValue(MoveEffect.NONE);
             }
