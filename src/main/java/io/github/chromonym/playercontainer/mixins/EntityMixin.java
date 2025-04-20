@@ -15,6 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import com.mojang.authlib.GameProfile;
@@ -44,11 +45,16 @@ public abstract class EntityMixin {
     @Inject(method = "setUuid(Ljava/util/UUID;)V", at = @At("HEAD"))
     public void trackOwnerUpdating(UUID uuid, CallbackInfo ci) {
         Entity thisE = (Entity)(Object)this;
+        HashSet<ContainerInstance<?>> toSetOwner = new HashSet<ContainerInstance<?>>();
         for (Entry<UUID, ContainerInstance<?>> entry : ContainerInstance.containers.entrySet()) {
             Optional<Entity> owner = entry.getValue().getOwner().left();
             if (owner.isPresent() && owner.get().getUuid() == uuid) {
-                entry.getValue().setOwner(thisE);
+                //entry.getValue().setOwner(thisE);
+                toSetOwner.add(entry.getValue());
             }
+        }
+        for (ContainerInstance<?> cc : toSetOwner) {
+            cc.setOwner(thisE);
         }
     }
 

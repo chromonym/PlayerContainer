@@ -8,11 +8,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.jetbrains.annotations.Nullable;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Maps;
 import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
@@ -39,10 +41,10 @@ import net.minecraft.world.World;
 
 public class ContainerInstance<C extends AbstractContainer> {
 
-    public static BiMap<UUID, ContainerInstance<?>> containers = HashBiMap.create();
-    public static Map<GameProfile, UUID> players = new HashMap<GameProfile, UUID>(); // PLAYERS TO CONTAINERS!!
-    public static Map<UUID, UUID> playersToRecapture = new HashMap<UUID, UUID>(); // players that need to be recaptured by a given container when next possible
-    public static Map<UUID, UUID> playersToRelease = new HashMap<UUID, UUID>(); // players that need to be released when next possible
+    public static BiMap<UUID, ContainerInstance<?>> containers = Maps.synchronizedBiMap(HashBiMap.create());
+    public static Map<GameProfile, UUID> players = new ConcurrentHashMap<GameProfile, UUID>(); // PLAYERS TO CONTAINERS!!
+    public static Map<UUID, UUID> playersToRecapture = new ConcurrentHashMap<UUID, UUID>(); // players that need to be recaptured by a given container when next possible
+    public static Map<UUID, UUID> playersToRelease = new ConcurrentHashMap<UUID, UUID>(); // players that need to be released when next possible
     public static Set<UUID> disconnectedPlayers = new HashSet<UUID>(); // players that have disconnected this tick (should be ignored in checking recap/decap)
 
     public static final Codec<ContainerInstance<?>> CODEC = RecordCodecBuilder.create(

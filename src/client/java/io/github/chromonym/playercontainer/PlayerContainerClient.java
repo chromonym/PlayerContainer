@@ -1,6 +1,13 @@
 package io.github.chromonym.playercontainer;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
 import org.lwjgl.glfw.GLFW;
+
+import com.google.common.collect.Maps;
+import com.mojang.authlib.GameProfile;
 
 import io.github.chromonym.playercontainer.containers.ContainerInstance;
 import io.github.chromonym.playercontainer.items.ContainerInstanceHolder;
@@ -12,6 +19,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
 import net.minecraft.client.item.ClampedModelPredicateProvider;
@@ -59,6 +67,8 @@ public class PlayerContainerClient implements ClientModInitializer {
 		ClientPlayNetworking.registerGlobalReceiver(ContainerInstancesPayload.ID, (payload, context) -> {
 			context.client().execute(() -> {
 				if (!context.client().isIntegratedServerRunning()) {
+					ContainerInstance.containers.clear();
+					ContainerInstance.players.clear();
 					payload.containers().forEach((uuid, container) -> {
 						container.setOwnerClient(context.player().getWorld());
 						ContainerInstance.containers.put(uuid, container);
@@ -70,6 +80,10 @@ public class PlayerContainerClient implements ClientModInitializer {
 					});
 				}
 			});
+		});
+		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+			ContainerInstance.containers.clear();
+			ContainerInstance.players.clear();
 		});
 		releaseKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
 			"key.playercontainer.release", // The translation key of the keybinding's name
