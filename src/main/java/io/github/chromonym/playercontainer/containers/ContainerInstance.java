@@ -66,6 +66,7 @@ public class ContainerInstance<C extends AbstractContainer> {
 
     private final C container;
     private UUID ID;
+    public boolean isCapturing = false;
     private Entity ownerEntity;
     private BlockEntity ownerBlockEntity;
     private BlockPos cachedBlockPos;
@@ -424,6 +425,7 @@ public class ContainerInstance<C extends AbstractContainer> {
     }
 
     public void onPlayerTick(ServerPlayerEntity player) {
+        this.isCapturing = false;
         container.onPlayerTick(player, this);
     }
 }
