@@ -67,17 +67,25 @@ public class PlayerContainerClient implements ClientModInitializer {
 		ClientPlayNetworking.registerGlobalReceiver(ContainerInstancesPayload.ID, (payload, context) -> {
 			context.client().execute(() -> {
 				if (!context.client().isIntegratedServerRunning()) {
-					ContainerInstance.containers.clear();
-					ContainerInstance.players.clear();
+					Set<UUID> contsToRemove = new HashSet<UUID>(ContainerInstance.containers.keySet());
+					Set<GameProfile> playersToRemove = new HashSet<GameProfile>(ContainerInstance.players.keySet());
 					payload.containers().forEach((uuid, container) -> {
 						container.setOwnerClient(context.player().getWorld());
 						ContainerInstance.containers.put(uuid, container);
+						contsToRemove.remove(uuid);
 						//PlayerContainer.LOGGER.info("Recieved "+uuid.toString()+" ("+container.getContainerKey()+")");
 					});
+					for (UUID toRemove : contsToRemove) {
+						ContainerInstance.containers.remove(toRemove);
+					}
 					payload.players().forEach((player, container) -> {
 						ContainerInstance.players.put(player, container);
+						playersToRemove.remove(player);
 						//PlayerContainer.LOGGER.info("Recieved "+ player.getName()+" in "+container.toString());
 					});
+					for (GameProfile toRemove : playersToRemove) {
+						ContainerInstance.players.remove(toRemove);
+					}
 				}
 			});
 		});
