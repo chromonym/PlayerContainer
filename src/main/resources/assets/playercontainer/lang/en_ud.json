@@ -1,0 +1,25 @@
+{
+    "item.playercontainer.basic_container": "\u0279\u01DDu\u1D09\u0250\u0287uo\u0186 \u0254\u1D09s\u0250\u15FA",
+    "item.playercontainer.large_container": "\u0279\u01DDu\u1D09\u0250\u0287uo\u0186 \u01DD\u1D77\u0279\u0250\uA780",
+    "item.playercontainer.huge_container": "\u0279\u01DDu\u1D09\u0250\u0287uo\u0186 \u01DD\u1D77nH",
+    "item.playercontainer.singularity_container": "\u0279\u01DDu\u1D09\u0250\u0287uo\u0186 \u028E\u0287\u1D09\u0279\u0250\uA781n\u1D77u\u1D09S",
+    "item.playercontainer.loose_player": "\u0279\u01DD\u028E\u0250\uA781\u0500 \u01DDsoo\uA780",
+    "item.playercontainer.loose_player.named": "%s",
+    "block.playercontainer.cage": "\u01DD\u1D77\u0250\u0186 \u0279\u01DD\u028E\u0250\uA781\u0500",
+    "item.playercontainer.self_container": "\u0279\u01DDu\u1D09\u0250\u0287uo\u0186 \u025F\uA781\u01DDS",
+    "item.playercontainer.debug_container": "\u0279\u01DDu\u1D09\u0250\u0287uo\u0186 \u1D77nq\u01DD\u15E1",
+    "item.playercontainer.player_essence": "\u01DD\u0254u\u01DDss\u018E \u0279\u01DD\u028E\u0250\uA781\u0500",
+    "item.playercontainer.player_essence.named": "\u01DD\u0254u\u01DDss\u018E \u0279\u01DD\u028E\u0250\uA781\u0500 s,%s",
+    "item.playercontainer.player_essence_bottle": "\u01DD\u0254u\u01DDss\u018E \u0279\u01DD\u028E\u0250\uA781\u0500 \u025Fo \u01DD\uA781\u0287\u0287o\u15FA",
+    "item.playercontainer.player_essence_bottle.named": "\u01DD\u0254u\u01DDss\u018E s,%s \u025Fo \u01DD\uA781\u0287\u0287o\u15FA",
+
+    "itemGroup.playercontainer.playercontainer": "s\u0279\u01DDu\u1D09\u0250\u0287uo\u0186 \u0279\u01DD\u028E\u0250\uA781\u0500",
+    
+    "tooltip.playercontainer.contains": "su\u1D09\u0250\u0287uo\u0186 :",
+    "tooltip.playercontainer.empty_fragile": "\u00A1\u028E\u0279o\u0287u\u01DD\u028Cu\u1D09 s,\u0279\u01DD\u028E\u0250\uA781d \u0250 o\u0287 p\u01DD\u028Co\u026F u\u01DD\u0265\u028D p\u01DD\u028Eo\u0279\u0287s\u01DDp \u01DDq \uA781\uA781\u1D09M \u00A1\u0279\u01DDu\u1D09\u0250\u0287uo\u0254 \u01DD\uA781\u1D09\u1D77\u0250\u0279\u025F \u028E\u0287d\u026F\u018E",
+
+    "category.playercontainer": "s\u0279\u01DDu\u1D09\u0250\u0287uo\u0186 \u0279\u01DD\u028E\u0250\uA781\u0500",
+    "key.playercontainer.release": "\u01DDs\u0250\u01DD\uA781\u01DD\u1D1A",
+
+    "gamerule.playercontainer:restrictToBooth": "s\u0250\u01DD\u0279\u0250 \u0287\u01DDs u\u1D09 s\u0279\u01DDu\u1D09\u0250\u0287uo\u0254 \u0279\u01DD\u028E\u0250\uA781d \u028Do\uA781\uA781\u0250 \u028E\uA781uO"
+}

@@ -1,0 +1,25 @@
+{
+    "item.playercontainer.basic_container": "Simple Vessel",
+    "item.playercontainer.large_container": "Vast Veseel",
+    "item.playercontainer.huge_container": "Collossal Vessel",
+    "item.playercontainer.singularity_container": "Vessel of the Dark Maw",
+    "item.playercontainer.loose_player": "Lax Player",
+    "item.playercontainer.loose_player.named": "%s",
+    "block.playercontainer.cage": "Prison of Man",
+    "item.playercontainer.self_container": "Vessel for Thyself",
+    "item.playercontainer.debug_container": "Vessel of Curiosity",
+    "item.playercontainer.player_essence": "Essence of Player",
+    "item.playercontainer.player_essence.named": "Essence of %s",
+    "item.playercontainer.player_essence_bottle": "Phial of Essence",
+    "item.playercontainer.player_essence_bottle.named": "Phial of the Essence of %s",
+
+    "itemGroup.playercontainer.playercontainer": "Player Vessels",
+    
+    "tooltip.playercontainer.contains": "Holdeth:",
+    "tooltip.playercontainer.empty_fragile": "Prithee! This vessel bears a frail shell, hollow! If thou is placed upon thy inventory, it shall breaketh!",
+
+    "category.playercontainer": "Player Vessels",
+    "key.playercontainer.release": "Unbind",
+
+    "gamerule.playercontainer:restrictToBooth": "Permit vessels only within ordained bounds"
+}

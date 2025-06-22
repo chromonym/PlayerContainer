@@ -1,0 +1,25 @@
+{
+    "item.playercontainer.basic_container": "lonelyy kitteh boxsr",
+    "item.playercontainer.large_container": "swag kittehz boxsr!!!",
+    "item.playercontainer.huge_container": "fam squadz kitteh boxsr!!!!!",
+    "item.playercontainer.singularity_container": "INFIUNT KITNAPZ!1!!",
+    "item.playercontainer.loose_player": "fren! :D",
+    "item.playercontainer.loose_player.named": "%s! :D",
+    "block.playercontainer.cage": "Kitteh Jeil!!",
+    "item.playercontainer.self_container": "HALP plz i trolp mslef :c",
+    "item.playercontainer.debug_container": "idk wha tezzdin boxr?? lmao",
+    "item.playercontainer.player_essence": "luv bean :3",
+    "item.playercontainer.player_essence.named": "%s's luv bean :3",
+    "item.playercontainer.player_essence_bottle": "luv bean potion :3",
+    "item.playercontainer.player_essence_bottle.named": "Poshun wif %s's luv bean :3",
+
+    "itemGroup.playercontainer.playercontainer": "Kitteh boxzrz",
+    
+    "tooltip.playercontainer.contains": "HAZ:",
+    "tooltip.playercontainer.empty_fragile": "MT bokxzr shensituv!!! go BYE BYE in teh fur Pouch :(",
+
+    "category.playercontainer": "kitteh boxzrz",
+    "key.playercontainer.release": "goh free!!!",
+
+    "gamerule.playercontainer:restrictToBooth": "kitteh boxzr exklusiv in ze arealib lmao"
+}

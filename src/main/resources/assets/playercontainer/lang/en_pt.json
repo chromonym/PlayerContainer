@@ -1,0 +1,25 @@
+{
+    "item.playercontainer.basic_container": "Holdin' Bottle 'o Matey",
+    "item.playercontainer.large_container": "Holdin' Bottle 'o Three Musketeers",
+    "item.playercontainer.huge_container": "Holdin' Bottle 'o Crew",
+    "item.playercontainer.singularity_container": "Blackbeard's Bottomless Bottle o' Holdin n' Rum",
+    "item.playercontainer.loose_player": "Ol' Matey",
+    "item.playercontainer.loose_player.named": "%s",
+    "block.playercontainer.cage": "Wee Brig",
+    "item.playercontainer.self_container": "Me Own Holdin' Bottle",
+    "item.playercontainer.debug_container": "Ship Fixer's Testin' Bottle",
+    "item.playercontainer.player_essence": "Sailor Breath",
+    "item.playercontainer.player_essence.named": "%s's Breath",
+    "item.playercontainer.player_essence_bottle": "Bottle o' Sailor Breath",
+    "item.playercontainer.player_essence_bottle.named": "Bottle o' %s's Breath",
+
+    "itemGroup.playercontainer.playercontainer": "Scallywags in a Bottle",
+    
+    "tooltip.playercontainer.contains": "Holdin\':",
+    "tooltip.playercontainer.empty_fragile": "Aye, 'tis bottle here be damned! Breaks into a billion pieces when ye' hold it!",
+
+    "category.playercontainer": "Scallywags in a Bottle",
+    "key.playercontainer.release": "Release",
+
+    "gamerule.playercontainer:restrictToBooth": "Only permit scallywag activities in set area"
+}
