@@ -8,6 +8,9 @@
 		"Chromonym",
 		"Swizik"
 	],
+	"contributors": [
+		"MeeperCreep"
+	],
 	"contact": {
 		"homepage": "https://modrinth.com/mod/playercontainers",
 		"sources": "https://github.com/chromonym/PlayerContainer",
